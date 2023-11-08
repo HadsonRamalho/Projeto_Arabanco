@@ -3,6 +3,17 @@
 
 using namespace std;
 
+/////////////////////////// TO-DO ////////////////////////////////
+/*
+  (Funcao)  |  Tarefa
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+  (cadastrarConta) | Verificar se ja existe um cadastro com os dados inseridos
+  (cadastrarConta) | Alterar a atribuicao direta dos valores de Temp para Cliente
+
+*/
+//////////////////////////////////////////////////////////////////
+
 struct Cliente {
 	char numeroDaConta[12];
 	char numeroDaAgencia[6];
@@ -12,7 +23,7 @@ struct Cliente {
 };
 
 const int MAX_CLIENTES = 50;
-int quantidadeDeClientes = 0;
+int quantidadeDeClientes = 0; 
 
 Cliente Clientes[MAX_CLIENTES];
 
@@ -22,27 +33,31 @@ inline void cabecalho_menuPrincipal() {
 		<< "**************************************" << endl;
 }
 
+void cadastrarConta() {
+	Cliente Temp; // Tipo temporario, armazena dados para serem verificados antes de serem salvos no sistema
+	cout << " 1 | Cadastrar Conta Corrente" << endl << endl;
+	cout << "Número da Conta: ";
+	cin >> Temp.numeroDaConta;
+	cout << "Número da Agência: ";
+	cin >> Temp.numeroDaAgencia;
+	cout << "Nome do Titular: ";
+	cin >> Temp.nomeDoTitular;
+	cout << "CPF do Titular: ";
+	cin >> Temp.cpfDoTitular;
+	cout << "Saldo inicial: ";
+	cin >> Temp.saldoInicial;
+	while (Temp.saldoInicial < 0) {
+		cerr << "Saldo inválido: O valor não pode ser negativo." << endl << "Digite novamente: ";
+		cin >> Temp.saldoInicial;
+	}
+	Clientes[quantidadeDeClientes] = Temp; // Atribuicao direta (considerar mudar)
+}
+
 void switch_menuPrincipal(int opcaoMenu) {
+	system("CLS");
 	switch (opcaoMenu) {
 	case 1:
-		system("CLS");
-		Cliente Temp;
-		cout << " 1 | Cadastrar Conta Corrente" << endl << endl;
-		cout << "Número da Conta: ";
-		cin >> Temp.numeroDaConta;
-		cout << "Número da Agência: ";
-		cin >> Temp.numeroDaAgencia;
-		cout << "Nome do Titular: ";
-		cin >> Temp.nomeDoTitular;
-		cout << "CPF do Titular: ";
-		cin >> Temp.cpfDoTitular;
-		cout << "Saldo inicial: ";
-		cin >> Temp.saldoInicial;
-		while (Temp.saldoInicial < 0) {
-			cerr << "Saldo inválido: O valor não pode ser negativo." << endl << "Digite novamente: ";
-			cin >> Temp.saldoInicial;
-		}
-		Clientes[quantidadeDeClientes] = Temp;
+		cadastrarConta();
 		break;
 	}
 }
