@@ -44,7 +44,7 @@ void menuPrincipal();
 void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu);
 void cadastrarConta();
 int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca);
-void atribuiChars(Cliente Clientes[], int indice, Cliente Temp);
+void atribuiChar(Cliente Clientes[], int indice, Cliente Temp);
 void exibeConta(Cliente Clientes[], int indice);
 
 ////////////////////////////////////////////////////////////////
@@ -129,7 +129,7 @@ void cadastrarConta() {
 		cerr << "Saldo inválido: O valor não pode ser negativo." << endl << "Digite novamente: ";
 		cin >> Temp.saldoInicial;
 	}
-	atribuiChars(Clientes, quantidadeDeClientes, Temp); // Faz a cópia dos dados inseridos em Temp para Clientes[]
+	atribuiChar(Clientes, quantidadeDeClientes, Temp); // Faz a cópia dos dados inseridos em Temp para Clientes[]
 	quantidadeDeClientes++;
 }
 
@@ -179,7 +179,7 @@ int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca) {
 
 
 // Faz a cópia de campos de Temp para campos de Clientes[indice]
-void atribuiChars(Cliente Clientes[], int indice, Cliente Temp) {
+void atribuiChar(Cliente Clientes[], int indice, Cliente Temp) {
 	strcpy(Clientes[indice].numeroDaConta, Temp.numeroDaConta);
 }
 
