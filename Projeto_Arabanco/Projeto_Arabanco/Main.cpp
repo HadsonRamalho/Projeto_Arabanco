@@ -51,7 +51,7 @@ void altera();
 ////////////////////////////////////////////////////////////////
 
 int main() {
-	// Configura a localização para pt_BR.utf8
+	// Configura a localização para pt_BR (permite usar acentos no terminal)
 	setlocale(LC_ALL, "pt_BR");
 	menuPrincipal();
 	return 0;
