@@ -1,7 +1,7 @@
 #include <iostream>
 #include <locale.h>
 
-using namespac e std;
+using namespace std;
 
 /////////////////////////// TO-DO ////////////////////////////////
 /*
