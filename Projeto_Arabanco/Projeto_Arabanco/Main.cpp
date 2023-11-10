@@ -67,7 +67,7 @@ void menuPrincipal() {
 	int opcaoMenu;
 	do {
 		system("CLS");
-		cabecalho_menuPrincipal();
+		cabecalho_menuPrincipal(); 
 		cout << " Menu de opções: " << endl
 			<< " 1 | Cadastrar Conta Corrente" << endl
 			<< " 2 | Alterar dados de uma Conta Corrente" << endl
