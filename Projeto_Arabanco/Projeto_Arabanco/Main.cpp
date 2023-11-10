@@ -20,7 +20,7 @@ using namespace std;
 
 const int MAX_CLIENTES = 50;
 int quantidadeDeClientes = 0;
-
+ 
 /// 
 /// Structs
 /// 
@@ -38,7 +38,7 @@ Cliente Clientes[MAX_CLIENTES];
 /// 
 /// Protótipos
 /// 
-
+ 
 inline void cabecalho_menuPrincipal();
 void menuPrincipal();
 void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu);
