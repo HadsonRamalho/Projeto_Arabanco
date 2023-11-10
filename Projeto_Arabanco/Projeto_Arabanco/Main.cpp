@@ -1,18 +1,8 @@
 #include <iostream>
 #include <locale.h>
+#include <string.h>
 
 using namespace std;
-
-/////////////////////////// TO-DO ////////////////////////////////
-/*
-         (Funcao)  |  Tarefa
-|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-
-  (cadastrarConta) | Verificar se ja existe um cadastro com os dados inseridos
-  (cadastrarConta) | Alterar a atribuicao direta dos valores de Temp para Cliente
-
-*/
-//////////////////////////////////////////////////////////////////
 
 /// 
 /// Constantes
@@ -151,37 +141,32 @@ void cadastrarConta() {
 /// </summary>
 
 int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca) {
-	switch (opcaoDeBusca) {
-	case 1:
-		for (int i = 0; i < quantidadeDeClientes; i++) {
+	for (int i = 0; i < quantidadeDeClientes; i++) {
+		switch (opcaoDeBusca) {
+		case 1:
 			if (strcmp(Clientes[i].numeroDaConta, campoDeBusca) == 0) {
-				return i; // Retorna a posição em que foi encontrado um cadastro
+				return i; // Retorna a posiÃ§Ã£o em que foi encontrado um cadastro
 			}
-		}
-		break;
-	case 2:
-		for (int i = 0; i < quantidadeDeClientes; i++) {
+			break;
+
+		case 2:
 			if (strcmp(Clientes[i].numeroDaAgencia, campoDeBusca) == 0) {
 				return i;
 			}
-		}
-		break;
-	case 3:
-		for (int i = 0; i < quantidadeDeClientes; i++) {
+			break;
+		case 3:
 			if (strcmp(Clientes[i].nomeDoTitular, campoDeBusca) == 0) {
 				return i;
 			}
-		}
-		break;
-	case 4:
-		for (int i = 0; i < quantidadeDeClientes; i++) {
+			break;
+		case 4:
 			if (strcmp(Clientes[i].cpfDoTitular, campoDeBusca) == 0) {
 				return i;
 			}
+			break;
 		}
-		break;
 	}
-	return -1; // Retorna -1 se não for encontrado um cadastro com os campos buscados
+	return -1; //Retorna -1 se nÃ£o for encontrado um cadastro com os campos buscados
 }
 
 
@@ -226,7 +211,7 @@ void alterarConta(Cliente Clientes[]) {
 	if (resultadoDaBusca != -1) {
 		validacao2 = true;
 		indiceResultado2 = resultadoDaBusca;
-	}
+	} 
 
 	if (!validacao1 || !validacao2) { // Se alguma das validações falhar, exibe um erro na tela e retorna ao menu principal
 		cerr << " Conta não encontrada! " << endl;
