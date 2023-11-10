@@ -46,6 +46,7 @@ void cadastrarConta();
 int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca);
 void atribuiChar(Cliente Clientes[], int indice, Cliente Temp);
 void exibeConta(Cliente Clientes[], int indice);
+void altera();
 
 ////////////////////////////////////////////////////////////////
 
