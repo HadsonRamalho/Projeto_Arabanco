@@ -9,7 +9,7 @@ using namespace std;
 
 const int MAX_CLIENTES = 50;
 int quantidadeDeClientes = 0;
- 
+
 /// 
 /// Structs
 /// 
@@ -32,7 +32,7 @@ struct Cliente {
 
 	int qtdLancamentos = 0; // Quantidade total de lançamentos em uma conta
 	int EXT_quantidadeDeLancamentos[50]; // ATENÇÃO: Esses vetores sincronizam os valores e tipos do extrato
-	float EXT_valorDoLancamento[50]; 
+	float EXT_valorDoLancamento[50];
 	float EXT_saldoPosLancamento[50];
 	int EXT_tipoDoLancamento[50];
 };
@@ -41,7 +41,7 @@ Cliente Clientes[MAX_CLIENTES];
 /// 
 /// Protótipos
 /// 
- 
+
 inline void cabecalho_menuPrincipal();
 void menuPrincipal();
 void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu);
@@ -74,7 +74,7 @@ void menuPrincipal() {
 	int opcaoMenu;
 	do {
 		system("CLS");
-		cabecalho_menuPrincipal(); 
+		cabecalho_menuPrincipal();
 		cout << " Menu de opcoes: " << endl
 			<< " 1 | Cadastrar Conta Corrente" << endl
 			<< " 2 | Alterar dados de uma Conta Corrente" << endl
@@ -258,7 +258,7 @@ int selecionaConta(Cliente Clientes[]) {
 
 void alterarConta(Cliente Clientes[]) {
 	int indice = selecionaConta(Clientes);
-	while (indice == -1){
+	while (indice == -1) {
 		system("CLS");
 		cerr << " Conta nao encontrada! Digite novamente." << endl;
 		indice = selecionaConta(Clientes);
@@ -298,7 +298,7 @@ void depositar(Cliente Clientes[]) {
 	cout << " --- Deposito efetuado com sucesso --- " << endl;
 }
 
-void realizarSaque(){
+void realizarSaque() {
 	//Variaveis para pegar os dados digitados pelo usuario:
 	char numeroDaConta[12];
 	char numeroDaAgencia[6];
@@ -307,7 +307,7 @@ void realizarSaque(){
 	int indice;
 	bool valido;
 	//O laço abaixo se repete até que seja digitado uma conta válida
-	do{
+	do {
 		system("CLS");
 		cout << " | Insira o Numero da Conta Corrente: ";
 		cin >> numeroDaConta;
@@ -315,37 +315,37 @@ void realizarSaque(){
 		cin >> numeroDaAgencia;
 		//Abaixo a expressão lógica para saber se a conta digitada é valida ou não
 		valido = busca(Clientes, numeroDaConta, 1) == busca(Clientes, numeroDaAgencia, 2) && busca(Clientes, numeroDaAgencia, 2) != -1;
-		if(valido){
+		if (valido) {
 			//Caso seja válida, é salvo o indice da conta.
 			indice = busca(Clientes, numeroDaConta, 1);
 		}
-		else{
+		else {
 			cerr << "Numero da conta e/ou da agencia incorreto! Digite novamente: " << endl;
 			system("pause");
 		}
-	}while(!valido);
+	} while (!valido);
 
 	//O laço abaixo se repete até que o valor sacado seja válido(maior que zero e menor que o saldo disponivel na conta)
-	do{
+	do {
 		system("CLS");
 		exibeConta(Clientes, indice);//Exibe os dados da conta digitada pelo usuario
 		cout << " | Digite o valor a ser sacado: ";
 		cin >> valorSaque;
 		//Abaixo é feita uma série de verificações para checar se o valor é valido, caso não seja, exibe uma mensagem informando o erro
 		//ocorrido
-		if(valorSaque < 0){
+		if (valorSaque < 0) {
 			cerr << " O valor a ser sacado nao pode ser negativo! Digite novamente: " << endl;
 			system("pause");
 		}
-		else if(valorSaque == 0){
+		else if (valorSaque == 0) {
 			cerr << " O valor a ser sacado deve ser maior que 0" << endl;
 			system("pause");
 		}
-		else if(valorSaque > Clientes[indice].saldoAtual){
+		else if (valorSaque > Clientes[indice].saldoAtual) {
 			cerr << " Valor nao disponivel na conta!" << endl;
 			system("pause");
 		}
-	}while(valorSaque <= 0 || valorSaque > Clientes[indice].saldoAtual);
+	} while (valorSaque <= 0 || valorSaque > Clientes[indice].saldoAtual);
 
 	//Caso passe pelas verificações acima, é decrementado do saldo atual o saque e, por fim, exibe o valor sacado e o valor restante.
 	Clientes[indice].saldoAtual -= valorSaque;
