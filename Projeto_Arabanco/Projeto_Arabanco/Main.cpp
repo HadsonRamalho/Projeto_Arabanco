@@ -43,18 +43,18 @@ Cliente Clientes[MAX_CLIENTES];
 /// 
  
 inline void cabecalho_menuPrincipal();
-void menuPrincipal();
-void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu);
-void cadastrarConta();
-int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca);
+void menuPrincipal(); 
+void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu); 
+void cadastrarConta(); 
+int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca); 
 void atribuiChar(Cliente Clientes[], int indice, Cliente Temp);
-void exibeConta(Cliente Clientes[], int indice);
-int selecionaConta(Cliente Clientes[]);
-void alterarConta(Cliente Clientes[]);
-void emitirExtrato(Cliente Clientes[]);
+void exibeConta(Cliente Clientes[], int indice); 
+int selecionaConta(Cliente Clientes[]); 
+void alterarConta(Cliente Clientes[]); 
+void emitirExtrato(Cliente Clientes[]); 
 void depositar(Cliente Clientes[]);
 void realizarSaque();
-void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float valorLancamento);
+void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float valorLancamento); 
 
 ////////////////////////////////////////////////////////////////
 
