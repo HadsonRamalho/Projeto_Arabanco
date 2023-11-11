@@ -372,7 +372,6 @@ void emitirExtrato(Cliente Clientes[]) {
 			tipoLancamento = Clientes[indice].EXT_tipoDoLancamento[i];
 			break;
 		}
-
 		cout << " | Valor do Lançamento: ";
 		switch (tipoLancamento) {
 		case 4:
