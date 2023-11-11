@@ -129,7 +129,6 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 	}
 }
 
-// Substituir pela do Jefferson
 void cadastrarConta() {
 	Cliente Temp; // Tipo temporario, armazena dados para serem verificados antes de serem salvos no sistema
 	cout << " 1 | Cadastrar Conta Corrente" << endl << endl;
