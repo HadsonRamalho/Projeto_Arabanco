@@ -1,7 +1,8 @@
 #include <iostream>
 #include <locale.h>
+#include <string.h>
 
-using namespac e std;
+using namespace std;
 
 /////////////////////////// TO-DO ////////////////////////////////
 /*
@@ -46,6 +47,7 @@ void cadastrarConta();
 int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca);
 void atribuiChar(Cliente Clientes[], int indice, Cliente Temp);
 void exibeConta(Cliente Clientes[], int indice);
+void realizarSaque();
 
 ////////////////////////////////////////////////////////////////
 
@@ -59,7 +61,7 @@ int main() {
 // Cabeçalho inline
 inline void cabecalho_menuPrincipal() {
 	cout << "**************************************" << endl
-		<< "*   ARABANCO - SEMPRE COM VOCÊ =P    *" << endl
+		<< "*   ARABANCO - SEMPRE COM VOCE =P    *" << endl
 		<< "**************************************" << endl;
 }
 
@@ -68,21 +70,21 @@ void menuPrincipal() {
 	do {
 		system("CLS");
 		cabecalho_menuPrincipal(); 
-		cout << " Menu de opções: " << endl
+		cout << " Menu de opcoes: " << endl
 			<< " 1 | Cadastrar Conta Corrente" << endl
 			<< " 2 | Alterar dados de uma Conta Corrente" << endl
 			<< " 3 | Excluir uma Conta Corrente" << endl
 			<< " 4 | Consultar Saldo" << endl
-			<< " 5 | Fazer Depósito" << endl
+			<< " 5 | Fazer Deposito" << endl
 			<< " 6 | Realizar saque" << endl
 			<< " 7 | Transferir valores" << endl
 			<< " 8 | Mostrar todas as contas e saldos" << endl
 			<< " 9 | Emitir extrato de conta" << endl
 			<< " 10 | Sair" << endl
-			<< " Escolha uma opção: ";
+			<< " Escolha uma opcao: ";
 		cin >> opcaoMenu;
 		if (opcaoMenu < 1 || opcaoMenu > 10) { // Validando a opção escolhida
-			cerr << "Opção inválida. Digite novamente." << endl;
+			cerr << "Opção invalida. Digite novamente." << endl;
 			system("PAUSE");
 		}
 		else {
@@ -98,6 +100,11 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 	case 1:
 		cadastrarConta();
 		break;
+		
+	case 6:
+		realizarSaque();
+		break;
+		
 	case 8:
 		for (int i = 0; i < quantidadeDeClientes; i++) {
 			exibeConta(Clientes, i);
@@ -111,13 +118,13 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 void cadastrarConta() {
 	Cliente Temp; // Tipo temporario, armazena dados para serem verificados antes de serem salvos no sistema
 	cout << " 1 | Cadastrar Conta Corrente" << endl << endl;
-	cout << "Número da Conta: ";
+	cout << "Numero da Conta: ";
 	cin >> Temp.numeroDaConta;
 	while (busca(Clientes, Temp.numeroDaConta, 1) != -1) { //  Se retornar -1, significa que nao existe um cadastro com o campo escolhido
-		cerr << "Já existe uma Conta Corrente com esse número. Digite novamente: ";
+		cerr << "Ja existe uma Conta Corrente com esse numero. Digite novamente: ";
 		cin >> Temp.numeroDaConta;
 	}
-	cout << "Número da Agência: ";
+	cout << "Numero da Agencia: ";
 	cin >> Temp.numeroDaAgencia;
 	cout << "Nome do Titular: ";
 	cin >> Temp.nomeDoTitular;
@@ -126,7 +133,7 @@ void cadastrarConta() {
 	cout << "Saldo inicial: ";
 	cin >> Temp.saldoInicial;
 	while (Temp.saldoInicial < 0) {
-		cerr << "Saldo inválido: O valor não pode ser negativo." << endl << "Digite novamente: ";
+		cerr << "Saldo invalido: O valor nao pode ser negativo." << endl << "Digite novamente: ";
 		cin >> Temp.saldoInicial;
 	}
 	atribuiChar(Clientes, quantidadeDeClientes, Temp); // Faz a cópia dos dados inseridos em Temp para Clientes[]
@@ -180,7 +187,12 @@ int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca) {
 
 // Faz a cópia de campos de Temp para campos de Clientes[indice]
 void atribuiChar(Cliente Clientes[], int indice, Cliente Temp) {
-	strcpy(Clientes[indice].numeroDaConta, Temp.numeroDaConta);
+	/*strcpy(Clientes[indice].numeroDaConta, Temp.numeroDaConta);
+	strcpy(Clientes[indice].numeroDaAgencia, Temp.numeroDaAgencia);
+	strcpy(Clientes[indice].nomeDoTitular, Temp.numeroDaAgencia);
+	strcp*/
+	Clientes[indice] = Temp;
+	Clientes[indice].saldoAtual = Temp.saldoInicial;
 }
 
 // Exibe todos os campos de uma determinada conta (pode ser usado dentro de um loop)
@@ -191,4 +203,59 @@ void exibeConta(Cliente Clientes[], int indice) {
 		<< " | CPF do Titular: " << Clientes[indice].cpfDoTitular << endl
 		<< " | Saldo Atual: " << Clientes[indice].saldoAtual << endl
 		<< "---------------------------------" << endl;
+}
+
+void realizarSaque(){
+	//Variaveis para pegar os dados digitados pelo usuario:
+	char numeroDaConta[12];
+	char numeroDaAgencia[6];
+	float valorSaque;
+	//Variaveis para pegar retorno de funções
+	int indice;
+	bool valido;
+	//O laço abaixo se repete até que seja digitado uma conta válida
+	do{
+		system("CLS");
+		cout << "Por favor, digite o numero da conta: ";
+		cin >> numeroDaConta;
+		cout << "Por favor, digite o numero da agencia: ";
+		cin >> numeroDaAgencia;
+		//Abaixo a expressão lógica para saber se a conta digitada é valida ou não
+		valido = busca(Clientes, numeroDaConta, 1) == busca(Clientes, numeroDaAgencia, 2) && busca(Clientes, numeroDaAgencia, 2) != -1;
+		if(valido){
+			//Caso seja válida, é salvo o indice da conta.
+			indice = busca(Clientes, numeroDaConta, 1);
+		}
+		else{
+			cerr << "Numero da conta e/ou da agencia incorreto! Digite novamente: " << endl;
+			system("pause");
+		}
+	}while(!valido);
+	
+	//O laço abaixo se repete até que o valor sacado seja válido(maior que zero e menor que o saldo disponivel na conta)
+	do{
+		system("CLS");
+		exibeConta(Clientes, indice);//Exibe os dados da conta digitada pelo usuario
+		cout << "Digite o valor a ser sacado: ";
+		cin >> valorSaque;
+		//Abaixo é feita uma série de verificações para checar se o valor é valido, caso não seja, exibe uma mensagem informando o erro
+		//ocorrido
+		if(valorSaque < 0){
+			cerr << "O valor a ser sacado nao pode ser negativo! Digite novamente: " << endl;
+			system("pause");
+		}
+		else if(valorSaque == 0){
+			cerr << "O valor a ser sacado deve ser maior que 0" << endl;
+			system("pause");
+		}
+		else if(valorSaque > Clientes[indice].saldoAtual){
+			cerr << "Valor nao disponivel na conta!" << endl;
+			system("pause");
+		}
+	}while(valorSaque <= 0 || valorSaque > Clientes[indice].saldoAtual);
+	
+	//Caso passe pelas verificações acima, é decrementado do saldo atual o saque e, por fim, exibe o valor sacado e o valor restante.
+	Clientes[indice].saldoAtual -= valorSaque;
+	cout << "Saque de " << valorSaque << " realizado com sucesso! Valor restante na conta: " << Clientes[indice].saldoAtual << endl;
+	system("pause");
 }
