@@ -30,9 +30,9 @@ struct Cliente {
 	char cpfDoTitular[19];
 	float saldoAtual;
 
-	int qtdLancamentos = 0;
-	int EXT_quantidadeDeLancamentos[50];
-	float EXT_valorDoLancamento[50];
+	int qtdLancamentos = 0; // Quantidade total de lançamentos em uma conta
+	int EXT_quantidadeDeLancamentos[50]; // ATENÇÃO: Esses vetores sincronizam os valores e tipos do extrato
+	float EXT_valorDoLancamento[50]; 
 	float EXT_saldoPosLancamento[50];
 	int EXT_tipoDoLancamento[50];
 };
@@ -54,6 +54,7 @@ void alterarConta(Cliente Clientes[]);
 void emitirExtrato(Cliente Clientes[]);
 void depositar(Cliente Clientes[]);
 void realizarSaque();
+void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float valorLancamento);
 
 ////////////////////////////////////////////////////////////////
 
@@ -129,6 +130,7 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 	}
 }
 
+// Atualiza o extrato de acordo com os tipos de lançamentos definidos no topo do código
 void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float valorLancamento) {
 	Clientes[indice].EXT_tipoDoLancamento[Clientes[indice].qtdLancamentos] = tipoLancamento;
 	Clientes[indice].EXT_quantidadeDeLancamentos[Clientes[indice].qtdLancamentos] = Clientes[indice].qtdLancamentos;
@@ -137,7 +139,6 @@ void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float 
 	Clientes[indice].qtdLancamentos++;
 }
 
-// Substituir pela do Jefferson
 void cadastrarConta() {
 	Cliente Temp; // Tipo temporario, armazena dados para serem verificados antes de serem salvos no sistema
 	cout << " 1 | Cadastrar Conta Corrente" << endl << endl;
@@ -178,7 +179,7 @@ int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca) {
 		switch (opcaoDeBusca) {
 		case 1:
 			if (strcmp(Clientes[i].numeroDaConta, campoDeBusca) == 0) {
-				return i; // Retorna a posiÃ§Ã£o em que foi encontrado um cadastro
+				return i; // Retorna a posição em que foi encontrado um cadastro
 			}
 			break;
 
@@ -199,7 +200,7 @@ int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca) {
 			break;
 		}
 	}
-	return -1; //Retorna -1 se nÃ£o for encontrado um cadastro com os campos buscados
+	return -1; //Retorna -1 se não for encontrado um cadastro com os campos buscados
 }
 
 
@@ -279,25 +280,22 @@ void alterarConta(Cliente Clientes[]) {
 void depositar(Cliente Clientes[]) {
 	int indice = selecionaConta(Clientes);
 	float valorDeposito;
-	if (indice == -1) {
-		cerr << " Conta nao encontrada! " << endl;
-		return; // Sai da função se não encontrar
+	while (indice == -1) {
+		system("CLS");
+		cerr << " Conta nao encontrada! Digite novamente. " << endl;
+		indice = selecionaConta(Clientes);
 	}
 	exibeConta(Clientes, indice);
 	cout << " | Digite o valor a ser depositado: ";
 	cin >> valorDeposito;
-	if (valorDeposito > 0) {
-		Clientes[indice].EXT_tipoDoLancamento[Clientes[indice].qtdLancamentos] = 3;
-		Clientes[indice].saldoAtual += valorDeposito;
-		Clientes[indice].EXT_quantidadeDeLancamentos[Clientes[indice].qtdLancamentos] = Clientes[indice].qtdLancamentos;
-		Clientes[indice].EXT_valorDoLancamento[Clientes[indice].qtdLancamentos] = valorDeposito;
-		Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].qtdLancamentos] = Clientes[indice].saldoAtual;
-		Clientes[indice].qtdLancamentos++;
-		cout << " --- Deposito efetuado com sucesso --- " << endl;
+	while (valorDeposito <= 0) { // Proibindo depositos iguais a zero ou negativos
+		system("CLS");
+		cerr << " Valor do deposito nao pode ser menor ou igual a zero! Digite novamente." << endl;
+		cin >> valorDeposito;
 	}
-	else {
-		cerr << " Valor do deposito nao pode ser igual ou menor do que zero!" << endl;
-	}
+	Clientes[indice].saldoAtual += valorDeposito;
+	atualizaExtrato(Clientes, indice, 3, valorDeposito); // Atualizando o extrato do cliente
+	cout << " --- Deposito efetuado com sucesso --- " << endl;
 }
 
 void realizarSaque(){
@@ -353,33 +351,34 @@ void realizarSaque(){
 	Clientes[indice].saldoAtual -= valorSaque;
 	cout << " --- Saque de " << valorSaque << " realizado com sucesso!  Valor restante na conta: " << Clientes[indice].saldoAtual << " --- " << endl;
 
-	Clientes[indice].EXT_tipoDoLancamento[Clientes[indice].qtdLancamentos] = 4;
-	Clientes[indice].EXT_quantidadeDeLancamentos[Clientes[indice].qtdLancamentos] = Clientes[indice].qtdLancamentos;
-	Clientes[indice].EXT_valorDoLancamento[Clientes[indice].qtdLancamentos] = valorSaque;
-	Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].qtdLancamentos] = Clientes[indice].saldoAtual;
-	Clientes[indice].qtdLancamentos++;
+	atualizaExtrato(Clientes, indice, 4, valorSaque);
 }
 
+// Exibe o extrato
 void emitirExtrato(Cliente Clientes[]) {
-	int indice = selecionaConta(Clientes);
-	if (indice == -1) {
-		cerr << " Conta nao encontrada! " << endl;
-		return;
+	int indice = selecionaConta(Clientes); // Procurando a conta do cliente
+	while (indice == -1) {
+		system("CLS");
+		cerr << " Conta nao encontrada! Digite novamente.";
+		indice = selecionaConta(Clientes);
 	}
 	exibeConta(Clientes, indice);
 	cout << " - Extrato da Conta - " << endl;
 	int tipoLancamento = 0;
 	for (int i = 0; i < Clientes[indice].qtdLancamentos; i++) {
 		cout << " | Tipo de Lancamento: ";
-		switch (Clientes[indice].EXT_tipoDoLancamento[i]) {
+		switch (Clientes[indice].EXT_tipoDoLancamento[i]) { // Lê o vetor do extrato contendo o tipo de lançamento
 		case 0:
 			cout << " Saldo Inicial";
+			tipoLancamento = Clientes[indice].EXT_tipoDoLancamento[i];
 			break;
 		case 1:
 			cout << " Transferencia Enviada";
+			tipoLancamento = Clientes[indice].EXT_tipoDoLancamento[i];
 			break;
 		case 2:
 			cout << " Transferencia Recebida";
+			tipoLancamento = Clientes[indice].EXT_tipoDoLancamento[i];
 			break;
 		case 3:
 			cout << " Deposito";
@@ -391,13 +390,16 @@ void emitirExtrato(Cliente Clientes[]) {
 			break;
 		}
 		cout << " | Valor do Lancamento: ";
-		switch (tipoLancamento) {
+		switch (tipoLancamento) { // Caso seja decrementado um valor (saque ou transferência enviada)
+		case 1:
+			cout << "-";
+			break;
 		case 4:
 			cout << "-";
 			break;
 		}
 		cout << "R$";
-		cout << Clientes[indice].EXT_valorDoLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]];
-		cout << " | Saldo: " << Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]] << endl;
+		cout << Clientes[indice].EXT_valorDoLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]]; // Exibe o valor do lançamento
+		cout << " | Saldo: " << Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]] << endl; // Exibe o saldo após o lançamento ter sido realizado
 	}
 }
