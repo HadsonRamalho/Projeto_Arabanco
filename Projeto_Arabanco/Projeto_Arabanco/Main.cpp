@@ -284,7 +284,7 @@ void depositar(Cliente Clientes[]) {
 		Clientes[indice].EXT_valorDoLancamento[Clientes[indice].qtdLancamentos] = valorDeposito;
 		Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].qtdLancamentos] = Clientes[indice].saldoAtual;
 		Clientes[indice].qtdLancamentos++;
-		cout << " - Deposito efetuado com sucesso - " << endl;
+		cout << " --- Deposito efetuado com sucesso --- " << endl;
 	}
 	else {
 		cerr << " Valor do deposito nao pode ser igual ou menor do que zero!" << endl;
@@ -342,7 +342,7 @@ void realizarSaque(){
 
 	//Caso passe pelas verificações acima, é decrementado do saldo atual o saque e, por fim, exibe o valor sacado e o valor restante.
 	Clientes[indice].saldoAtual -= valorSaque;
-	cout << " - Saque de " << valorSaque << " realizado com sucesso!  Valor restante na conta: " << Clientes[indice].saldoAtual << " - " << endl;
+	cout << " --- Saque de " << valorSaque << " realizado com sucesso!  Valor restante na conta: " << Clientes[indice].saldoAtual << " --- " << endl;
 
 	Clientes[indice].EXT_tipoDoLancamento[Clientes[indice].qtdLancamentos] = 4;
 	Clientes[indice].EXT_quantidadeDeLancamentos[Clientes[indice].qtdLancamentos] = Clientes[indice].qtdLancamentos;
