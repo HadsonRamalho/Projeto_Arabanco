@@ -54,6 +54,7 @@ void emitirExtrato(Cliente Clientes[]);
 void depositar(Cliente Clientes[]);
 void realizarSaque(Cliente Clientes[]);
 void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float valorLancamento);
+void tranferirValores(Cliente Clientes[]);
 
 ////////////////////////////////////////////////////////////////
 
@@ -116,6 +117,9 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 	case 6:
 		realizarSaque(Clientes);
 		break;
+	case 7:
+		tranferirValores(Clientes);
+		break;
 	case 8:
 		for (int i = 0; i < quantidadeDeClientes; i++) {
 			exibeConta(Clientes, i);
@@ -141,6 +145,11 @@ void cadastrarConta(Cliente Clientes[]) {
 	}
 	cout << "Numero da Agencia: ";
 	cin >> Temp.numeroDaAgencia;
+	while (busca(Clientes, Temp.numeroDaAgencia, 2) != -1) { //  Se retornar -1, significa que nao existe um cadastro com o campo escolhido
+		system("CLS");
+		cerr << "Ja existe uma conta com esse numero de Agencia. Digite novamente: ";
+		cin >> Temp.numeroDaAgencia;
+	}
 	cout << "Nome do Titular: ";
 	cin >> Temp.nomeDoTitular;
 	cout << "CPF do Titular: ";
@@ -172,7 +181,6 @@ int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca) {
 				return i; // Retorna a posição em que foi encontrado um cadastro
 			}
 			break;
-
 		case 2:
 			if (strcmp(Clientes[i].numeroDaAgencia, campoDeBusca) == 0) {
 				return i;
@@ -192,7 +200,6 @@ int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca) {
 	}
 	return -1; //Retorna -1 se não for encontrado um cadastro com os campos buscados
 }
-
 
 // Faz a cópia de campos de Temp para campos de Clientes[indice]
 void atribuiChar(Cliente Clientes[], int indice, Cliente Temp) {
@@ -235,7 +242,7 @@ int selecionaConta(Cliente Clientes[]) {
 		validacao2 = true;
 		indiceResultado2 = resultadoDaBusca;
 	}
-	if (!validacao1 || !validacao2) { // Se alguma das validações falhar, retorna -1a
+	if (!validacao1 || !validacao2) { // Se alguma das validações falhar, retorna -1
 		return -1;
 	}
 
@@ -362,7 +369,7 @@ void emitirExtrato(Cliente Clientes[]) {
 		indice = selecionaConta(Clientes);
 	}
 	exibeConta(Clientes, indice);
-	cout << " - Extrato da Conta - " << endl;
+	cout << " --- Extrato da Conta --- " << endl;
 	int tipoLancamento = 0;
 	for (int i = 0; i < Clientes[indice].qtdLancamentos; i++) {
 		cout << " | Tipo de Lancamento: ";
@@ -401,4 +408,50 @@ void emitirExtrato(Cliente Clientes[]) {
 		cout << Clientes[indice].EXT_valorDoLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]]; // Exibe o valor do lançamento
 		cout << " | Saldo: " << Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]] << endl; // Exibe o saldo após o lançamento ter sido realizado
 	}
+}
+
+void tranferirValores(Cliente Clientes[]) {
+	int indice1 = selecionaConta(Clientes); // Primeira conta a ser verificada
+	while (indice1 == -1) {  
+		system("CLS");
+		cerr << "Conta nao encontrada! Digite novamente.";
+		indice1 = selecionaConta(Clientes);
+	}
+	cout << " Agora selecione a conta de destino: " << endl;
+	int indice2 = selecionaConta(Clientes);
+	while (indice2 == -1) {
+		system("CLS");
+		cerr << "Conta nao encontrada! Digite novamente.";
+		indice2 = selecionaConta(Clientes);
+	}
+	cout << "Conta de origem:";
+	exibeConta(Clientes, indice1); // Exibe cada conta separadamente
+	cout << "Conta de destino:";
+	exibeConta(Clientes, indice2);
+	cout << "Digite o valor a ser transferido:";
+	float valorTransferencia; // Valor 
+	do { // Reutilizado da função de Saque
+		//Abaixo é feita uma série de verificações para checar se o valor é valido, caso não seja, exibe uma mensagem informando o erro
+		//ocorrido
+		cin >> valorTransferencia;
+		if (valorTransferencia < 0) {
+			system("CLS");
+			cerr << " O valor a ser transferido nao pode ser negativo! Digite novamente: " << endl;
+		}
+		else if (valorTransferencia == 0) {
+			system("CLS");
+			cerr << " O valor a ser transferido deve ser maior que 0" << endl;
+		}
+		else if (valorTransferencia > Clientes[indice1].saldoAtual) {
+			cerr << " Valor nao disponivel na conta!" << endl;
+			system("pause");
+			system("CLS");
+		}
+	} while (valorTransferencia <= 0 || valorTransferencia > Clientes[indice1].saldoAtual); // Verificando se o valor inserido é válido
+	Clientes[indice1].saldoAtual -= valorTransferencia; // Subtrai o valor transferido da conta atual
+	Clientes[indice2].saldoAtual += valorTransferencia; // Soma o valor à conta de destino
+	atualizaExtrato(Clientes, indice1, 1, valorTransferencia); // Atualiza o extrato com a opção de transferência enviada
+	atualizaExtrato(Clientes, indice2, 2, valorTransferencia); // Atualzia o extrato com a opção de transferência recebida
+	cout << " --- Transferencia concluida ---" << endl;
+	system("PAUSE");
 }
