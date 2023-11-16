@@ -56,6 +56,7 @@ void menuPrincipal();
 void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu);
 void cadastrarConta(Cliente Clientes[]);
 int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca);
+void excluirConta(Cliente Clientes[], int& quantidadeDeClientes);
 void atribuiChar(Cliente Clientes[], int indice, Cliente Temp);
 void exibeConta(Cliente Clientes[], int indice);
 int selecionaConta(Cliente Clientes[]);
@@ -126,6 +127,9 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 	case 2:
 		alterarConta(Clientes);
 		system("PAUSE");
+		break;
+	case 3:
+		excluirConta(Clientes, quantidadeDeClientes);
 		break;
 	case 5:
 		depositar(Clientes);
@@ -221,7 +225,33 @@ int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca) {
 	}
 	return -1; //Retorna -1 se não for encontrado um cadastro com os campos buscados
 }
+void excluirConta(Cliente Clientes[], int& quantidadeDeClientes) {
+	system("cls");
+	char numeroDaConta[12];
+	char numeroDaAgencia[6];
 
+	cout << "Excluindo conta...\n";
+	cout << "Informe o numero da conta: ";
+	cin >> numeroDaConta;
+	cout << "Agora informe o numero da agencia: ";
+	cin >> numeroDaAgencia;
+
+	int buscarNumero = busca(Clientes, numeroDaConta, 1);
+
+	if (buscarNumero == -1) {
+		cout << "Conta nao encontrada!\n";
+		cout << "operaçao finalizada!";
+		system("pause");
+	}
+	else {
+		for (int i = buscarNumero; i < quantidadeDeClientes; i++) {
+			Clientes[i] = Clientes[i + 1];
+			quantidadeDeClientes--;
+		}
+		cout << "Conta Deletada com sucesso." << endl;
+		system("pause");
+	}
+}
 // Faz a cópia de campos de Temp para campos de Clientes[indice]
 void atribuiChar(Cliente Clientes[], int indice, Cliente Temp) {
 	strcpy(Clientes[indice].numeroDaConta, Temp.numeroDaConta);
