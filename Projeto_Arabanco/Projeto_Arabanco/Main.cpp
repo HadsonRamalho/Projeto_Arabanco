@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string.h>
+#include <fstream>
+#include <windows.h>
 
 using namespace std;
 
@@ -9,6 +11,14 @@ using namespace std;
 
 const int MAX_CLIENTES = 50;
 int quantidadeDeClientes = 0;
+
+#ifndef UNLEN
+#define UNLEN 256
+#endif
+
+extern "C" {
+	WINBASEAPI BOOL WINAPI GetUserNameA(LPSTR, LPDWORD);
+}
 
 /// 
 /// Structs
@@ -55,8 +65,15 @@ void depositar(Cliente Clientes[]);
 void realizarSaque(Cliente Clientes[]);
 void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float valorLancamento);
 void tranferirValores(Cliente Clientes[]);
+void userName(char diretorioDeCriacao[]);
+void geraDiretorio(char username[], char diretorioDeCriacao[]);
+void preparaExtrato(Cliente Clientes[]);
+
+ofstream fout;
 
 ////////////////////////////////////////////////////////////////
+
+
 
 int main() {
 	menuPrincipal();
@@ -89,7 +106,7 @@ void menuPrincipal() {
 			<< " 10 | Sair" << endl
 			<< " Escolha uma opcao: ";
 		cin >> opcaoMenu;
-		if (opcaoMenu < 1 || opcaoMenu > 10) { // Validando a opção escolhida
+		if (opcaoMenu < 1 || opcaoMenu > 11) { // Validando a opção escolhida
 			cerr << "Opcao invalida. Digite novamente." << endl;
 			system("PAUSE");
 		}
@@ -129,6 +146,10 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 	case 9:
 		emitirExtrato(Clientes);
 		system("PAUSE");
+		break;
+	case 11:
+		cout << "Extrato em arquivo";
+		preparaExtrato(Clientes);
 		break;
 	}
 }
@@ -360,7 +381,164 @@ void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float 
 	Clientes[indice].qtdLancamentos++;
 }
 
-// Exibe o extrato
+// Cria o extrato em um arquivo HTML
+void geraHtml(Cliente Clientes[], int indice) {
+	int Lancamento = 0;
+	float valLancamento = 0;
+	float salLancamento = 0;
+	if (!fout.is_open()) {
+		cerr << "Erro ao abrir o arquivo." << endl;
+		return;
+	}
+	fout << "<html lang=\"pt-br\">";
+	fout << "<head>"
+		<< "<title> Extrato </title>";
+	
+	// O estilo da página gerada, incluindo fontes e cores
+	fout << "<style>"
+		<< "body {"
+		<< "font-family: 'Arial', 'Helvetica', sans-serif;"
+		<< "margin: 0;"
+		<< "display: flex;"
+		<< "flex-wrap: wrap;"
+		<< "justify-content: center;"
+		<< "align-items: center;"
+		<< "height: 100vh;"
+		<< "background-color: #80c2a0;"
+		<< "}"
+
+		<< ".card {"
+		<< "background-color: #ffffff; /* Cor de fundo branco */"
+		<< "border-radius: 10px;"
+		<< "box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);"
+		<< "margin: 10px;"
+		<< "padding: 20px;"
+		<< "box-sizing: border-box;"
+		<< "}"
+
+		<< ".auto-width {"
+		<< "width: auto !important;"
+		<< "}"
+
+		<< "table {"
+		<< "width: 100%;"
+		<< "background-color: #ffffff; /* Cor de fundo branco */"
+		<< "margin-top: 20px;"
+		<< "}"
+
+		<< "td {"
+		<< "padding: 16px;"
+		<< "}"
+		<< "</style>";
+
+
+
+	fout << "</head>";
+	fout << "<body>"
+		<< "<div class='card  auto-width'>" // Alterar isso pra ficar do tamanho certo
+		<< "<h1 style='color: rgb(61, 130, 90);'>" << "Nome: " << Clientes[indice].nomeDoTitular << "    Agencia/Conta:  " << Clientes[indice].numeroDaAgencia << "/" << Clientes[indice].numeroDaConta
+		<< " <p> Data        Horario"  "</h1>"
+		<< "<table border='2'>";
+
+	fout << "<thead>" <<
+		"<tr>" <<
+		"<th>Data</th>" <<
+		"<th>Hora</th>" <<
+		"<th>Tipo de Lançamento</th>" <<
+		"<th>Valor(R$) </th>" <<
+		"<th>Saldo(R$) </th>" <<
+		"</tr>" <<
+		"</thead>";
+	fout << "<tbody>";
+	for (int i = 0; i < Clientes[indice].qtdLancamentos; i++) {
+		switch (Clientes[indice].EXT_tipoDoLancamento[i]) {
+		case 0: case 2: case 3:
+			fout << "<tr style = 'font-weight: bold; color: green;'>";
+			break;
+		case 1: case 4:
+			fout << "<tr style='font-weight: bold; color: red;'>";
+		}
+
+		fout << "<td>" <<  "DATA" << "</td>"; // Alterar para data
+		fout << "<td>" << "HORA " << "</td>"; // Alterar para hora
+
+		switch (Clientes[indice].EXT_tipoDoLancamento[i]) {
+		case 0:
+			fout << "<td> Saldo Inicial </td>";
+			break;
+		case 1:
+			fout << "<td> Transferência Enviada </td>";
+			break;
+		case 2:
+			fout << "<td>  Transferência Recebida </td>";
+			break;
+		case 3:
+			fout << "<td>  Depósito</td>";
+			break;
+		case 4:
+			fout << "<td> Saque </td>";
+			break;
+		default:
+			fout << "<td> ? </td>";
+		}
+
+		fout << "<td>" << Clientes[indice].EXT_valorDoLancamento[i] << "</td>";
+		fout << "<td>" << Clientes[indice].EXT_saldoPosLancamento[i] << "</td>"; 
+		fout << "</tr>";
+	}
+	fout << "</tbody>"
+		<< "</table>"
+		<< "</div>"
+		<< "</body>";
+	fout << "</html>";
+}
+
+// Altera a string, adicionando o nome do usuário
+void getUserName(char diretorioDeCriacao[]) {
+	char username[UNLEN + 1];
+	DWORD username_len = UNLEN + 1;
+
+	if (!GetUserNameA(username, &username_len)) {
+		cerr << "Erro ao obter o nome do usuario" << endl;
+		return;
+	}
+	strcpy(diretorioDeCriacao, username);
+	geraDiretorio(username, diretorioDeCriacao);
+}
+
+// Define todo o caminho onde o arquivo será salvo
+void geraDiretorio(char username[], char diretorioDeCriacao[]) {
+	strcpy(diretorioDeCriacao, "");
+	strcat(diretorioDeCriacao, "C:\\Users\\");
+	strcat(diretorioDeCriacao, username);
+	strcat(diretorioDeCriacao, "\\Desktop\\Extrato.html");
+}
+
+// Começa a preparar a variável que vai armazenar o diretório onde o arquivo será salvo
+void preparaExtrato(Cliente Clientes[]) {
+
+	int indice = selecionaConta(Clientes);
+	while (indice == -1) {
+		system("CLS");
+		cerr << " Conta nao encontrada! Digite novamente." << endl;
+		indice = selecionaConta(Clientes);
+	}
+
+	char diretorioDeCriacao[150];
+	getUserName(diretorioDeCriacao); // A função getUserName altera a string
+
+	fout.open(diretorioDeCriacao);
+	geraHtml(Clientes, indice); // A função que vai escrever as informações no arquivo
+	if (!fout) {
+		cerr << "Erro ao abrir o arquivo" << endl;
+		return;
+	}
+	fout.close(); // Fecha e salva o arquivo gerado
+
+	system(diretorioDeCriacao); // Abre o Extrato no navegador padrão 
+}
+
+// Exibe o extrato na tela
 void emitirExtrato(Cliente Clientes[]) {
 	int indice = selecionaConta(Clientes); // Procurando a conta do cliente
 	while (indice == -1) {
@@ -406,19 +584,20 @@ void emitirExtrato(Cliente Clientes[]) {
 		}
 		cout << "R$";
 		cout << Clientes[indice].EXT_valorDoLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]]; // Exibe o valor do lançamento
-		cout << " | Saldo: " << Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]] << endl; // Exibe o saldo após o lançamento ter sido realizado
+		cout << " | Saldo: R$" << Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]] << endl; // Exibe o saldo após o lançamento ter sido realizado
 	}
 }
 
+// Transfere de uma conta para outra
 void tranferirValores(Cliente Clientes[]) {
-	int indice1 = selecionaConta(Clientes); // Primeira conta a ser verificada
-	while (indice1 == -1) {  
+	int indice1 = selecionaConta(Clientes);
+	while (indice1 == -1) {
 		system("CLS");
 		cerr << "Conta nao encontrada! Digite novamente.";
-		indice1 = selecionaConta(Clientes);
+		indice1 = selecionaConta(Clientes); // Armazena a localização da conta de origem
 	}
 	cout << " Agora selecione a conta de destino: " << endl;
-	int indice2 = selecionaConta(Clientes);
+	int indice2 = selecionaConta(Clientes); // Localização da conta de destino
 	while (indice2 == -1) {
 		system("CLS");
 		cerr << "Conta nao encontrada! Digite novamente.";
@@ -429,7 +608,7 @@ void tranferirValores(Cliente Clientes[]) {
 	cout << "Conta de destino:";
 	exibeConta(Clientes, indice2);
 	cout << "Digite o valor a ser transferido:";
-	float valorTransferencia; // Valor 
+	float valorTransferencia;
 	do { // Reutilizado da função de Saque
 		//Abaixo é feita uma série de verificações para checar se o valor é valido, caso não seja, exibe uma mensagem informando o erro
 		//ocorrido
