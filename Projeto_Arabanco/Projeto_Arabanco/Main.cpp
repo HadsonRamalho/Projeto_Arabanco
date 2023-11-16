@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string.h>
+#include <fstream>
+#include <windows.h>
 
 using namespace std;
 
@@ -10,6 +12,14 @@ using namespace std;
 const int MAX_CLIENTES = 50;
 int quantidadeDeClientes = 0;
 
+#ifndef UNLEN
+#define UNLEN 256
+#endif
+
+extern "C" {
+	WINBASEAPI BOOL WINAPI GetUserNameA(LPSTR, LPDWORD);
+}
+
 /// 
 /// Structs
 /// 
@@ -17,9 +27,9 @@ int quantidadeDeClientes = 0;
 ///
 /// Valores para tipoDoLancamento:
 ///  0 = Saldo Inicial
-///  1 = Transferência Enviada
-///  2 = Transferência Recebida
-///  3 = Depósito
+///  1 = TransferÃªncia Enviada
+///  2 = TransferÃªncia Recebida
+///  3 = DepÃ³sito
 ///  4 = Saque
 /// 
 
@@ -30,22 +40,21 @@ struct Cliente {
 	char cpfDoTitular[19];
 	float saldoAtual;
 
-	int qtdLancamentos = 0; // Quantidade total de lançamentos em uma conta
-	int EXT_quantidadeDeLancamentos[50]; // ATENÇÃO: Esses vetores sincronizam os valores e tipos do extrato
+	int qtdLancamentos = 0; // Quantidade total de lanÃ§amentos em uma conta
+	int EXT_quantidadeDeLancamentos[50]; // ATENÃ‡ÃƒO: Esses vetores sincronizam os valores e tipos do extrato
 	float EXT_valorDoLancamento[50];
 	float EXT_saldoPosLancamento[50];
 	int EXT_tipoDoLancamento[50];
 };
-Cliente Clientes[MAX_CLIENTES];
 
 /// 
-/// Protótipos
+/// ProtÃ³tipos
 /// 
 
 inline void cabecalho_menuPrincipal();
 void menuPrincipal();
 void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu);
-void cadastrarConta();
+void cadastrarConta(Cliente Clientes[]);
 int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca);
 void atribuiChar(Cliente Clientes[], int indice, Cliente Temp);
 void exibeConta(Cliente Clientes[], int indice);
@@ -53,17 +62,25 @@ int selecionaConta(Cliente Clientes[]);
 void alterarConta(Cliente Clientes[]);
 void emitirExtrato(Cliente Clientes[]);
 void depositar(Cliente Clientes[]);
-void realizarSaque();
+void realizarSaque(Cliente Clientes[]);
 void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float valorLancamento);
+void tranferirValores(Cliente Clientes[]);
+void userName(char diretorioDeCriacao[]);
+void geraDiretorio(char username[], char diretorioDeCriacao[]);
+void preparaExtrato(Cliente Clientes[]);
+
+ofstream fout;
 
 ////////////////////////////////////////////////////////////////
+
+
 
 int main() {
 	menuPrincipal();
 	return 0;
 }
 
-// Cabeçalho inline
+// CabeÃ§alho inline
 inline void cabecalho_menuPrincipal() {
 	cout << "**************************************" << endl
 		<< "*   ARABANCO - SEMPRE COM VOCE =P    *" << endl
@@ -72,6 +89,7 @@ inline void cabecalho_menuPrincipal() {
 
 void menuPrincipal() {
 	int opcaoMenu;
+	Cliente Clientes[MAX_CLIENTES];
 	do {
 		system("CLS");
 		cabecalho_menuPrincipal();
@@ -88,7 +106,7 @@ void menuPrincipal() {
 			<< " 10 | Sair" << endl
 			<< " Escolha uma opcao: ";
 		cin >> opcaoMenu;
-		if (opcaoMenu < 1 || opcaoMenu > 10) { // Validando a opção escolhida
+		if (opcaoMenu < 1 || opcaoMenu > 11) { // Validando a opÃ§Ã£o escolhida
 			cerr << "Opcao invalida. Digite novamente." << endl;
 			system("PAUSE");
 		}
@@ -98,14 +116,13 @@ void menuPrincipal() {
 	} while (opcaoMenu != 10);
 }
 
-// Acessando funções do programa
+// Acessando funÃ§Ãµes do programa
 void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 	system("CLS");
 	switch (opcaoMenu) {
 	case 1:
-		cadastrarConta();
+		cadastrarConta(Clientes);
 		break;
-
 	case 2:
 		alterarConta(Clientes);
 		system("PAUSE");
@@ -115,7 +132,10 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 		system("PAUSE");
 		break;
 	case 6:
-		realizarSaque();
+		realizarSaque(Clientes);
+		break;
+	case 7:
+		tranferirValores(Clientes);
 		break;
 	case 8:
 		for (int i = 0; i < quantidadeDeClientes; i++) {
@@ -127,19 +147,14 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 		emitirExtrato(Clientes);
 		system("PAUSE");
 		break;
+	case 11:
+		cout << "Extrato em arquivo";
+		preparaExtrato(Clientes);
+		break;
 	}
 }
 
-// Atualiza o extrato de acordo com os tipos de lançamentos definidos no topo do código
-void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float valorLancamento) {
-	Clientes[indice].EXT_tipoDoLancamento[Clientes[indice].qtdLancamentos] = tipoLancamento;
-	Clientes[indice].EXT_quantidadeDeLancamentos[Clientes[indice].qtdLancamentos] = Clientes[indice].qtdLancamentos;
-	Clientes[indice].EXT_valorDoLancamento[Clientes[indice].qtdLancamentos] = valorLancamento;
-	Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].qtdLancamentos] = Clientes[indice].saldoAtual;
-	Clientes[indice].qtdLancamentos++;
-}
-
-void cadastrarConta() {
+void cadastrarConta(Cliente Clientes[]) {
 	Cliente Temp; // Tipo temporario, armazena dados para serem verificados antes de serem salvos no sistema
 	cout << " 1 | Cadastrar Conta Corrente" << endl << endl;
 	cout << "Numero da Conta: ";
@@ -151,6 +166,11 @@ void cadastrarConta() {
 	}
 	cout << "Numero da Agencia: ";
 	cin >> Temp.numeroDaAgencia;
+	while (busca(Clientes, Temp.numeroDaAgencia, 2) != -1) { //  Se retornar -1, significa que nao existe um cadastro com o campo escolhido
+		system("CLS");
+		cerr << "Ja existe uma conta com esse numero de Agencia. Digite novamente: ";
+		cin >> Temp.numeroDaAgencia;
+	}
 	cout << "Nome do Titular: ";
 	cin >> Temp.nomeDoTitular;
 	cout << "CPF do Titular: ";
@@ -161,7 +181,7 @@ void cadastrarConta() {
 		cerr << "Saldo invalido: O valor nao pode ser negativo." << endl << "Digite novamente: ";
 		cin >> Temp.saldoAtual;
 	}
-	atribuiChar(Clientes, quantidadeDeClientes, Temp); // Faz a cópia dos dados inseridos em Temp para Clientes[]
+	atribuiChar(Clientes, quantidadeDeClientes, Temp); // Faz a cÃ³pia dos dados inseridos em Temp para Clientes[]
 	atualizaExtrato(Clientes, quantidadeDeClientes, 0, Temp.saldoAtual);
 	quantidadeDeClientes++;
 }
@@ -169,8 +189,8 @@ void cadastrarConta() {
 // Usada para verificar se existem cadastros com campos iguais
 /// <summary>
 ///  Valores para 'opcaoDeBusca': 
-///		1 = Número da Conta
-///		2 = Número da Agência
+///		1 = NÃºmero da Conta
+///		2 = NÃºmero da AgÃªncia
 ///		3 = Nome do Titular
 ///		4 = CPF do Titular
 /// </summary>
@@ -179,10 +199,9 @@ int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca) {
 		switch (opcaoDeBusca) {
 		case 1:
 			if (strcmp(Clientes[i].numeroDaConta, campoDeBusca) == 0) {
-				return i; // Retorna a posição em que foi encontrado um cadastro
+				return i; // Retorna a posiÃ§Ã£o em que foi encontrado um cadastro
 			}
 			break;
-
 		case 2:
 			if (strcmp(Clientes[i].numeroDaAgencia, campoDeBusca) == 0) {
 				return i;
@@ -200,11 +219,10 @@ int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca) {
 			break;
 		}
 	}
-	return -1; //Retorna -1 se não for encontrado um cadastro com os campos buscados
+	return -1; //Retorna -1 se nÃ£o for encontrado um cadastro com os campos buscados
 }
 
-
-// Faz a cópia de campos de Temp para campos de Clientes[indice]
+// Faz a cÃ³pia de campos de Temp para campos de Clientes[indice]
 void atribuiChar(Cliente Clientes[], int indice, Cliente Temp) {
 	strcpy(Clientes[indice].numeroDaConta, Temp.numeroDaConta);
 	strcpy(Clientes[indice].numeroDaAgencia, Temp.numeroDaAgencia);
@@ -224,34 +242,34 @@ void exibeConta(Cliente Clientes[], int indice) {
 }
 
 int selecionaConta(Cliente Clientes[]) {
-	char numConta[12], numAgencia[6]; // Os campos que serão buscados
-	int resultadoDaBusca; // Armazena o resultado da função de busca
-	bool validacao1 = false, validacao2 = false; // Faz a validação de cada um dos campos buscados
-	int indiceResultado1 = -1, indiceResultado2 = -2; // Armazena o índice em que foi encontrado uma conta com o campo buscado
+	char numConta[12], numAgencia[6]; // Os campos que serÃ£o buscados
+	int resultadoDaBusca; // Armazena o resultado da funÃ§Ã£o de busca
+	bool validacao1 = false, validacao2 = false; // Faz a validaÃ§Ã£o de cada um dos campos buscados
+	int indiceResultado1 = -1, indiceResultado2 = -2; // Armazena o Ã­ndice em que foi encontrado uma conta com o campo buscado
 
 	cout << " | Insira o Numero da Conta Corrente: ";
 	cin >> numConta;
 	cout << " | Insira o Numero da Agencia da Conta Corrente: ";
 	cin >> numAgencia;
 
-	resultadoDaBusca = busca(Clientes, numConta, 1); // Verifica se há uma conta com o número procurado, e armazena o resultado
+	resultadoDaBusca = busca(Clientes, numConta, 1); // Verifica se hÃ¡ uma conta com o nÃºmero procurado, e armazena o resultado
 	if (resultadoDaBusca != -1) {
-		validacao1 = true; // Valida a busca pelo número da conta
-		indiceResultado1 = resultadoDaBusca; // Armazena o índice em que foi encontrado a conta
+		validacao1 = true; // Valida a busca pelo nÃºmero da conta
+		indiceResultado1 = resultadoDaBusca; // Armazena o Ã­ndice em que foi encontrado a conta
 	}
 
-	resultadoDaBusca = busca(Clientes, numAgencia, 2); // Faz o mesmo que o de cima, mas buscando o número da agência
+	resultadoDaBusca = busca(Clientes, numAgencia, 2); // Faz o mesmo que o de cima, mas buscando o nÃºmero da agÃªncia
 	if (resultadoDaBusca != -1) {
 		validacao2 = true;
 		indiceResultado2 = resultadoDaBusca;
 	}
-	if (!validacao1 || !validacao2) { // Se alguma das validações falhar, retorna -1a
+	if (!validacao1 || !validacao2) { // Se alguma das validaÃ§Ãµes falhar, retorna -1
 		return -1;
 	}
 
 	if (validacao1 && validacao2 && indiceResultado1 == indiceResultado2) {
 		return indiceResultado1;
-	}// Se todas as validações passarem e os índices das contas forem os mesmos, segue com a alteração dos dados
+	}// Se todas as validaÃ§Ãµes passarem e os Ã­ndices das contas forem os mesmos, segue com a alteraÃ§Ã£o dos dados
 
 	return -1;
 }
@@ -271,8 +289,8 @@ void alterarConta(Cliente Clientes[]) {
 	cout << " | Insira o novo CPF do Titular: ";
 	cin >> Clientes[indice].cpfDoTitular;
 	cout << endl << " - Dados da Conta - " << endl
-		<< " | Número da Conta Corrente: " << Clientes[indice].numeroDaConta << endl
-		<< " | Número da Agencia: " << Clientes[indice].numeroDaAgencia << endl
+		<< " | NÃºmero da Conta Corrente: " << Clientes[indice].numeroDaConta << endl
+		<< " | NÃºmero da Agencia: " << Clientes[indice].numeroDaAgencia << endl
 		<< " | [NOVO] Nome do Titular: " << Clientes[indice].nomeDoTitular << endl
 		<< " | [NOVO] CPF do Titular: " << Clientes[indice].cpfDoTitular << endl;
 }
@@ -298,25 +316,25 @@ void depositar(Cliente Clientes[]) {
 	cout << " --- Deposito efetuado com sucesso --- " << endl;
 }
 
-void realizarSaque() {
+void realizarSaque(Cliente Clientes[]) {
 	//Variaveis para pegar os dados digitados pelo usuario:
 	char numeroDaConta[12];
 	char numeroDaAgencia[6];
 	float valorSaque;
-	//Variaveis para pegar retorno de funções
+	//Variaveis para pegar retorno de funÃ§Ãµes
 	int indice;
 	bool valido;
-	//O laço abaixo se repete até que seja digitado uma conta válida
+	//O laÃ§o abaixo se repete atÃ© que seja digitado uma conta vÃ¡lida
 	do {
 		system("CLS");
 		cout << " | Insira o Numero da Conta Corrente: ";
 		cin >> numeroDaConta;
 		cout << " | Insira o Numero da Agencia: ";
 		cin >> numeroDaAgencia;
-		//Abaixo a expressão lógica para saber se a conta digitada é valida ou não
+		//Abaixo a expressÃ£o lÃ³gica para saber se a conta digitada Ã© valida ou nÃ£o
 		valido = busca(Clientes, numeroDaConta, 1) == busca(Clientes, numeroDaAgencia, 2) && busca(Clientes, numeroDaAgencia, 2) != -1;
 		if (valido) {
-			//Caso seja válida, é salvo o indice da conta.
+			//Caso seja vÃ¡lida, Ã© salvo o indice da conta.
 			indice = busca(Clientes, numeroDaConta, 1);
 		}
 		else {
@@ -325,13 +343,13 @@ void realizarSaque() {
 		}
 	} while (!valido);
 
-	//O laço abaixo se repete até que o valor sacado seja válido(maior que zero e menor que o saldo disponivel na conta)
+	//O laÃ§o abaixo se repete atÃ© que o valor sacado seja vÃ¡lido(maior que zero e menor que o saldo disponivel na conta)
 	do {
 		system("CLS");
 		exibeConta(Clientes, indice);//Exibe os dados da conta digitada pelo usuario
 		cout << " | Digite o valor a ser sacado: ";
 		cin >> valorSaque;
-		//Abaixo é feita uma série de verificações para checar se o valor é valido, caso não seja, exibe uma mensagem informando o erro
+		//Abaixo Ã© feita uma sÃ©rie de verificaÃ§Ãµes para checar se o valor Ã© valido, caso nÃ£o seja, exibe uma mensagem informando o erro
 		//ocorrido
 		if (valorSaque < 0) {
 			cerr << " O valor a ser sacado nao pode ser negativo! Digite novamente: " << endl;
@@ -347,14 +365,180 @@ void realizarSaque() {
 		}
 	} while (valorSaque <= 0 || valorSaque > Clientes[indice].saldoAtual);
 
-	//Caso passe pelas verificações acima, é decrementado do saldo atual o saque e, por fim, exibe o valor sacado e o valor restante.
+	//Caso passe pelas verificaÃ§Ãµes acima, Ã© decrementado do saldo atual o saque e, por fim, exibe o valor sacado e o valor restante.
 	Clientes[indice].saldoAtual -= valorSaque;
 	cout << " --- Saque de " << valorSaque << " realizado com sucesso!  Valor restante na conta: " << Clientes[indice].saldoAtual << " --- " << endl;
 
 	atualizaExtrato(Clientes, indice, 4, valorSaque);
 }
 
-// Exibe o extrato
+// Atualiza o extrato de acordo com os tipos de lanÃ§amentos definidos no topo do cÃ³digo
+void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float valorLancamento) {
+	Clientes[indice].EXT_tipoDoLancamento[Clientes[indice].qtdLancamentos] = tipoLancamento;
+	Clientes[indice].EXT_quantidadeDeLancamentos[Clientes[indice].qtdLancamentos] = Clientes[indice].qtdLancamentos;
+	Clientes[indice].EXT_valorDoLancamento[Clientes[indice].qtdLancamentos] = valorLancamento;
+	Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].qtdLancamentos] = Clientes[indice].saldoAtual;
+	Clientes[indice].qtdLancamentos++;
+}
+
+// Cria o extrato em um arquivo HTML
+void geraHtml(Cliente Clientes[], int indice) {
+	int Lancamento = 0;
+	float valLancamento = 0;
+	float salLancamento = 0;
+	if (!fout.is_open()) {
+		cerr << "Erro ao abrir o arquivo." << endl;
+		return;
+	}
+	fout << "<html lang=\"pt-br\">";
+	fout << "<head>"
+		<< "<title> Extrato </title>";
+
+	// O estilo da pÃ¡gina gerada, incluindo fontes e cores
+	fout << "<style>"
+		<< "body {"
+		<< "font-family: 'Arial', 'Helvetica', sans-serif;"
+		<< "margin: 0;"
+		<< "display: flex;"
+		<< "flex-wrap: wrap;"
+		<< "justify-content: center;"
+		<< "align-items: center;"
+		<< "height: 100vh;"
+		<< "background-color: #80c2a0;"
+		<< "}"
+
+		<< ".card {"
+		<< "background-color: #ffffff; /* Cor de fundo branco */"
+		<< "border-radius: 10px;"
+		<< "box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);"
+		<< "margin: 10px;"
+		<< "padding: 20px;"
+		<< "box-sizing: border-box;"
+		<< "}"
+
+		<< ".auto-width {"
+		<< "width: auto !important;"
+		<< "}"
+
+		<< "table {"
+		<< "width: 100%;"
+		<< "background-color: #ffffff; /* Cor de fundo branco */"
+		<< "margin-top: 20px;"
+		<< "}"
+
+		<< "td {"
+		<< "padding: 16px;"
+		<< "}"
+		<< "</style>";
+
+
+
+	fout << "</head>";
+	fout << "<body>"
+		<< "<div class='card  auto-width'>" // Alterar isso pra ficar do tamanho certo
+		<< "<h1 style='color: rgb(61, 130, 90);'>" << "Nome: " << Clientes[indice].nomeDoTitular << "    Agencia/Conta:  " << Clientes[indice].numeroDaAgencia << "/" << Clientes[indice].numeroDaConta
+		<< " <p> Data        Horario"  "</h1>"
+		<< "<table border='2'>";
+
+	fout << "<thead>" <<
+		"<tr>" <<
+		"<th>Data</th>" <<
+		"<th>Hora</th>" <<
+		"<th>Tipo de LanÃ§amento</th>" <<
+		"<th>Valor(R$) </th>" <<
+		"<th>Saldo(R$) </th>" <<
+		"</tr>" <<
+		"</thead>";
+	fout << "<tbody>";
+	for (int i = 0; i < Clientes[indice].qtdLancamentos; i++) {
+		switch (Clientes[indice].EXT_tipoDoLancamento[i]) {
+		case 0: case 2: case 3:
+			fout << "<tr style = 'font-weight: bold; color: green;'>";
+			break;
+		case 1: case 4:
+			fout << "<tr style='font-weight: bold; color: red;'>";
+		}
+
+		fout << "<td>" << "DATA" << "</td>"; // Alterar para data
+		fout << "<td>" << "HORA " << "</td>"; // Alterar para hora
+
+		switch (Clientes[indice].EXT_tipoDoLancamento[i]) {
+		case 0:
+			fout << "<td> Saldo Inicial </td>";
+			break;
+		case 1:
+			fout << "<td> TransferÃªncia Enviada </td>";
+			break;
+		case 2:
+			fout << "<td>  TransferÃªncia Recebida </td>";
+			break;
+		case 3:
+			fout << "<td>  DepÃ³sito</td>";
+			break;
+		case 4:
+			fout << "<td> Saque </td>";
+			break;
+		default:
+			fout << "<td> ? </td>";
+		}
+
+		fout << "<td>" << Clientes[indice].EXT_valorDoLancamento[i] << "</td>";
+		fout << "<td>" << Clientes[indice].EXT_saldoPosLancamento[i] << "</td>";
+		fout << "</tr>";
+	}
+	fout << "</tbody>"
+		<< "</table>"
+		<< "</div>"
+		<< "</body>";
+	fout << "</html>";
+}
+
+// Altera a string, adicionando o nome do usuÃ¡rio
+void getUserName(char diretorioDeCriacao[]) {
+	char username[UNLEN + 1];
+	DWORD username_len = UNLEN + 1;
+
+	if (!GetUserNameA(username, &username_len)) {
+		cerr << "Erro ao obter o nome do usuario" << endl;
+		return;
+	}
+	strcpy(diretorioDeCriacao, username);
+	geraDiretorio(username, diretorioDeCriacao);
+}
+
+// Define todo o caminho onde o arquivo serÃ¡ salvo
+void geraDiretorio(char username[], char diretorioDeCriacao[]) {
+	strcpy(diretorioDeCriacao, "");
+	strcat(diretorioDeCriacao, "C:\\Users\\");
+	strcat(diretorioDeCriacao, username);
+	strcat(diretorioDeCriacao, "\\Desktop\\Extrato.html");
+}
+
+// ComeÃ§a a preparar a variÃ¡vel que vai armazenar o diretÃ³rio onde o arquivo serÃ¡ salvo
+void preparaExtrato(Cliente Clientes[]) {
+
+	int indice = selecionaConta(Clientes);
+	while (indice == -1) {
+		system("CLS");
+		cerr << " Conta nao encontrada! Digite novamente." << endl;
+		indice = selecionaConta(Clientes);
+	}
+
+	char diretorioDeCriacao[150];
+	getUserName(diretorioDeCriacao); // A funÃ§Ã£o getUserName altera a string
+
+	fout.open(diretorioDeCriacao);
+	geraHtml(Clientes, indice); // A funÃ§Ã£o que vai escrever as informaÃ§Ãµes no arquivo
+	if (!fout) {
+		cerr << "Erro ao abrir o arquivo" << endl;
+		return;
+	}
+	fout.close(); // Fecha e salva o arquivo gerado
+
+	system(diretorioDeCriacao); // Abre o Extrato no navegador padrÃ£o 
+}
+
+// Exibe o extrato na tela
 void emitirExtrato(Cliente Clientes[]) {
 	int indice = selecionaConta(Clientes); // Procurando a conta do cliente
 	while (indice == -1) {
@@ -363,11 +547,11 @@ void emitirExtrato(Cliente Clientes[]) {
 		indice = selecionaConta(Clientes);
 	}
 	exibeConta(Clientes, indice);
-	cout << " - Extrato da Conta - " << endl;
+	cout << " --- Extrato da Conta --- " << endl;
 	int tipoLancamento = 0;
 	for (int i = 0; i < Clientes[indice].qtdLancamentos; i++) {
 		cout << " | Tipo de Lancamento: ";
-		switch (Clientes[indice].EXT_tipoDoLancamento[i]) { // Lê o vetor do extrato contendo o tipo de lançamento
+		switch (Clientes[indice].EXT_tipoDoLancamento[i]) { // LÃª o vetor do extrato contendo o tipo de lanÃ§amento
 		case 0:
 			cout << " Saldo Inicial";
 			tipoLancamento = Clientes[indice].EXT_tipoDoLancamento[i];
@@ -390,7 +574,7 @@ void emitirExtrato(Cliente Clientes[]) {
 			break;
 		}
 		cout << " | Valor do Lancamento: ";
-		switch (tipoLancamento) { // Caso seja decrementado um valor (saque ou transferência enviada)
+		switch (tipoLancamento) { // Caso seja decrementado um valor (saque ou transferÃªncia enviada)
 		case 1:
 			cout << "-";
 			break;
@@ -399,7 +583,54 @@ void emitirExtrato(Cliente Clientes[]) {
 			break;
 		}
 		cout << "R$";
-		cout << Clientes[indice].EXT_valorDoLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]]; // Exibe o valor do lançamento
-		cout << " | Saldo: " << Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]] << endl; // Exibe o saldo após o lançamento ter sido realizado
+		cout << Clientes[indice].EXT_valorDoLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]]; // Exibe o valor do lanÃ§amento
+		cout << " | Saldo: R$" << Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]] << endl; // Exibe o saldo apÃ³s o lanÃ§amento ter sido realizado
 	}
+}
+
+// Transfere de uma conta para outra
+void tranferirValores(Cliente Clientes[]) {
+	int indice1 = selecionaConta(Clientes);
+	while (indice1 == -1) {
+		system("CLS");
+		cerr << "Conta nao encontrada! Digite novamente.";
+		indice1 = selecionaConta(Clientes); // Armazena a localizaÃ§Ã£o da conta de origem
+	}
+	cout << " Agora selecione a conta de destino: " << endl;
+	int indice2 = selecionaConta(Clientes); // LocalizaÃ§Ã£o da conta de destino
+	while (indice2 == -1) {
+		system("CLS");
+		cerr << "Conta nao encontrada! Digite novamente.";
+		indice2 = selecionaConta(Clientes);
+	}
+	cout << "Conta de origem:";
+	exibeConta(Clientes, indice1); // Exibe cada conta separadamente
+	cout << "Conta de destino:";
+	exibeConta(Clientes, indice2);
+	cout << "Digite o valor a ser transferido:";
+	float valorTransferencia;
+	do { // Reutilizado da funÃ§Ã£o de Saque
+		//Abaixo Ã© feita uma sÃ©rie de verificaÃ§Ãµes para checar se o valor Ã© valido, caso nÃ£o seja, exibe uma mensagem informando o erro
+		//ocorrido
+		cin >> valorTransferencia;
+		if (valorTransferencia < 0) {
+			system("CLS");
+			cerr << " O valor a ser transferido nao pode ser negativo! Digite novamente: " << endl;
+		}
+		else if (valorTransferencia == 0) {
+			system("CLS");
+			cerr << " O valor a ser transferido deve ser maior que 0" << endl;
+		}
+		else if (valorTransferencia > Clientes[indice1].saldoAtual) {
+			cerr << " Valor nao disponivel na conta!" << endl;
+			system("pause");
+			system("CLS");
+		}
+	} while (valorTransferencia <= 0 || valorTransferencia > Clientes[indice1].saldoAtual); // Verificando se o valor inserido Ã© vÃ¡lido
+	Clientes[indice1].saldoAtual -= valorTransferencia; // Subtrai o valor transferido da conta atual
+	Clientes[indice2].saldoAtual += valorTransferencia; // Soma o valor Ã  conta de destino
+	atualizaExtrato(Clientes, indice1, 1, valorTransferencia); // Atualiza o extrato com a opÃ§Ã£o de transferÃªncia enviada
+	atualizaExtrato(Clientes, indice2, 2, valorTransferencia); // Atualzia o extrato com a opÃ§Ã£o de transferÃªncia recebida
+	cout << " --- Transferencia concluida ---" << endl;
+	system("PAUSE");
 }
