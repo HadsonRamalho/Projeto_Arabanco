@@ -479,8 +479,8 @@ void geraHtml(Cliente Clientes[], int indice) {
 	fout << "</head>";
 	fout << "<body>"
 		<< "<div class='card  auto-width'>" // Alterar isso pra ficar do tamanho certo
-		<< "<h1 style='color: rgb(61, 130, 90);'>" << "Nome: " << Clientes[indice].nomeDoTitular << "    Agencia/Conta:  " << Clientes[indice].numeroDaAgencia << "/" << Clientes[indice].numeroDaConta
-		<< " <p> Data        Horario"  "</h1>"
+		<< "<h3 style='color: rgb(61, 130, 90); font-size: 20px';>" << "Nome: " << Clientes[indice].nomeDoTitular << "    Agencia/Conta:  " << Clientes[indice].numeroDaAgencia << "/" << Clientes[indice].numeroDaConta
+		<< " <p> Data        Horario"  "</h3>"
 		<< "<table border='2'>";
 
 	fout << "<thead>" <<
