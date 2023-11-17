@@ -11,6 +11,7 @@ using namespace std;
 
 const int MAX_CLIENTES = 50;
 int quantidadeDeClientes = 0;
+bool existeCadastro = false;
 
 #ifndef UNLEN
 #define UNLEN 256
@@ -123,6 +124,7 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 	switch (opcaoMenu) {
 	case 1:
 		cadastrarConta(Clientes);
+		existeCadastro = true;
 		break;
 	case 2:
 		alterarConta(Clientes);
@@ -142,9 +144,15 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 		tranferirValores(Clientes);
 		break;
 	case 8:
+		if (!existeCadastro && quantidadeDeClientes == 0) {
+			cerr << "Nao existem clientes cadastrados" << endl;			
+			system("PAUSE");
+			break;
+		}
 		for (int i = 0; i < quantidadeDeClientes; i++) {
 			exibeConta(Clientes, i);
 		}
+		cout << quantidadeDeClientes;
 		system("PAUSE");
 		break;
 	case 9:
@@ -188,6 +196,8 @@ void cadastrarConta(Cliente Clientes[]) {
 	atribuiChar(Clientes, quantidadeDeClientes, Temp); // Faz a cópia dos dados inseridos em Temp para Clientes[]
 	atualizaExtrato(Clientes, quantidadeDeClientes, 0, Temp.saldoAtual);
 	quantidadeDeClientes++;
+
+
 }
 
 // Usada para verificar se existem cadastros com campos iguais
@@ -250,6 +260,9 @@ void excluirConta(Cliente Clientes[], int& quantidadeDeClientes) {
 		}
 		cout << "Conta Deletada com sucesso." << endl;
 		system("pause");
+	}
+	if (quantidadeDeClientes == 0) {
+		existeCadastro = false;
 	}
 }
 // Faz a cópia de campos de Temp para campos de Clientes[indice]
