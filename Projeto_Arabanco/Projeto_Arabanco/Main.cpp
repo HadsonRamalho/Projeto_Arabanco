@@ -43,10 +43,10 @@ struct Cliente {
 	float saldoAtual;
 
 	int qtdLancamentos = 0; // Quantidade total de lançamentos em uma conta
-	int EXT_quantidadeDeLancamentos[50]; // ATENÇÃO: Esses vetores sincronizam os valores e tipos do extrato
-	float EXT_valorDoLancamento[50];
-	float EXT_saldoPosLancamento[50];
-	int EXT_tipoDoLancamento[50];
+	int EXT_quantidadeDeLancamentos[MAX_CLIENTES]; // ATENÇÃO: Esses vetores sincronizam os valores e tipos do extrato
+	float EXT_valorDoLancamento[MAX_CLIENTES];
+	float EXT_saldoPosLancamento[MAX_CLIENTES];
+	int EXT_tipoDoLancamento[MAX_CLIENTES];
 };
 
 /// 
@@ -708,7 +708,6 @@ void tranferirValores(Cliente Clientes[]) {
 	cout << " --- Transferencia concluida ---" << endl;
 	system("PAUSE");
 }
-
 
 // Se  tipo == 1  o fout exibe a data
 // Se  tipo == 2  o fout exibe a hora
