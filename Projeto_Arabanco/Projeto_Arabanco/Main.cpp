@@ -2,6 +2,7 @@
 #include <string.h>
 #include <fstream>
 #include <windows.h>
+#include <iomanip>
 
 using namespace std;
 
@@ -70,6 +71,7 @@ void tranferirValores(Cliente Clientes[]);
 void userName(char diretorioDeCriacao[]);
 void geraDiretorio(char username[], char diretorioDeCriacao[]);
 void preparaExtrato(Cliente Clientes[]);
+void dataAtual(int tipo = 1);
 
 ofstream fout;
 
@@ -469,6 +471,12 @@ void geraHtml(Cliente Clientes[], int indice) {
 		<< "margin-top: 20px;"
 		<< "}"
 
+		<< ".infoContas {"
+		<< "padding: 10px;"
+		<< "border: 1px solid #ccc;"
+		<< "border - radius: 5px;"
+		<< "cursor: pointer; }"
+
 		<< "td {"
 		<< "padding: 16px;"
 		<< "}"
@@ -479,14 +487,33 @@ void geraHtml(Cliente Clientes[], int indice) {
 	fout << "</head>";
 	fout << "<body>"
 		<< "<div class='card  auto-width'>" // Alterar isso pra ficar do tamanho certo
-		<< "<h3 style='color: rgb(61, 130, 90); font-size: 20px';>" << "Nome: " << Clientes[indice].nomeDoTitular << "    Agencia/Conta:  " << Clientes[indice].numeroDaAgencia << "/" << Clientes[indice].numeroDaConta
-		<< " <p> Data        Horario"  "</h3>"
+
+		<< "<table>"
+		<< "<tr>"
+		<< "<h3 style='color: rgb(61, 130, 90); padding: 10px; font-size: 20px';> Extrato Bancário </h3>"
+		<< "<td style='font-size: 20px;'>" << "Nome: " << Clientes[indice].nomeDoTitular
+		<< "</td>"
+		<< "<td style='font-size: 20px;'>" << "Agencia/Conta:  " << Clientes[indice].numeroDaAgencia << "/" << Clientes[indice].numeroDaConta
+		<< "</td>"
+		<< "</tr>"
+		<< "<tr>"
+		<< "<td style='font-size: 20px;'> Data: ";
+		dataAtual();
+		fout << "</td>"
+		<< "<td style='font-size: 20px;'> Horário: ";
+		dataAtual(2);
+		fout << "</td>"
+		<< "</tr>"
+		<< "</table>"
+
 		<< "<table border='2'>";
 
 	fout << "<thead>" <<
 		"<tr>" <<
-		"<th>Data</th>" <<
-		"<th>Hora</th>" <<
+		"<th>";
+	fout << "Data </th>" <<
+		"<th> Hora";
+	fout << "</th>" <<
 		"<th>Tipo de Lançamento</th>" <<
 		"<th>Valor(R$) </th>" <<
 		"<th>Saldo(R$) </th>" <<
@@ -502,8 +529,12 @@ void geraHtml(Cliente Clientes[], int indice) {
 			fout << "<tr style='font-weight: bold; color: red;'>";
 		}
 
-		fout << "<td>" << "DATA" << "</td>"; // Alterar para data
-		fout << "<td>" << "HORA " << "</td>"; // Alterar para hora
+		fout << "<td>";
+		dataAtual();
+		fout << "</td>"; // Alterar para data
+		fout << "<td>";
+		dataAtual(2);
+		fout << "</td>"; // Alterar para hora
 
 		switch (Clientes[indice].EXT_tipoDoLancamento[i]) {
 		case 0:
@@ -676,4 +707,33 @@ void tranferirValores(Cliente Clientes[]) {
 	atualizaExtrato(Clientes, indice2, 2, valorTransferencia); // Atualzia o extrato com a opção de transferência recebida
 	cout << " --- Transferencia concluida ---" << endl;
 	system("PAUSE");
+}
+
+
+// Se  tipo == 1  o fout exibe a data
+// Se  tipo == 2  o fout exibe a hora
+void dataAtual(int tipo) {
+	// Obtem o tempo atual
+	time_t currentTime;
+	time(&currentTime);
+	// Estrutura de tm para armazenar a hora local
+	struct tm timeInfo;
+	// Converte o tempo para a hora local usando localtime_s
+	if (localtime_s(&timeInfo, &currentTime) == 0) {
+		int year = timeInfo.tm_year + 1900;
+		int month = timeInfo.tm_mon + 1;
+		int day = timeInfo.tm_mday;
+		int hour = timeInfo.tm_hour;
+		int min = timeInfo.tm_min;
+		// Mostra a data atual
+		if(tipo == 1)
+			fout << day << "/" << month << "/" << year << endl;
+		if (tipo == 2)
+			fout << hour << ":" << setw(2) << setfill('0') << min;
+	}
+	else {
+		// Ocorreu um erro ao obter a hora local
+		cerr << "Erro ao obter a hora local." << endl;
+		return;
+	}
 }
