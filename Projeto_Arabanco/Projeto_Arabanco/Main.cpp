@@ -72,6 +72,8 @@ void userName(char diretorioDeCriacao[]);
 void geraDiretorio(char username[], char diretorioDeCriacao[]);
 void preparaExtrato(Cliente Clientes[]);
 void dataAtual(int tipo = 1);
+void consultarSaldo(Cliente Clientes[]);
+void menuExtrato(Cliente Clientes[]);
 
 ofstream fout;
 
@@ -110,7 +112,7 @@ void menuPrincipal() {
 			<< " 10 | Sair" << endl
 			<< " Escolha uma opcao: ";
 		cin >> opcaoMenu;
-		if (opcaoMenu < 1 || opcaoMenu > 11) { // Validando a opção escolhida
+		if (opcaoMenu < 1 || opcaoMenu > 10) { // Validando a opção escolhida
 			cerr << "Opcao invalida. Digite novamente." << endl;
 			system("PAUSE");
 		}
@@ -135,6 +137,9 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 	case 3:
 		excluirConta(Clientes, quantidadeDeClientes);
 		break;
+	case 4:
+		consultarSaldo(Clientes);
+		break;
 	case 5:
 		depositar(Clientes);
 		system("PAUSE");
@@ -158,12 +163,8 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 		system("PAUSE");
 		break;
 	case 9:
-		emitirExtrato(Clientes);
+		menuExtrato(Clientes);
 		system("PAUSE");
-		break;
-	case 11:
-		cout << "Extrato em arquivo";
-		preparaExtrato(Clientes);
 		break;
 	}
 }
@@ -620,34 +621,36 @@ void emitirExtrato(Cliente Clientes[]) {
 		cerr << " Conta nao encontrada! Digite novamente.";
 		indice = selecionaConta(Clientes);
 	}
+	system("cls");
+
 	exibeConta(Clientes, indice);
 	cout << " --- Extrato da Conta --- " << endl;
 	int tipoLancamento = 0;
 	for (int i = 0; i < Clientes[indice].qtdLancamentos; i++) {
-		cout << " | Tipo de Lancamento: ";
+		cout << " | Tipo de Lancamento: " << endl;
 		switch (Clientes[indice].EXT_tipoDoLancamento[i]) { // Lê o vetor do extrato contendo o tipo de lançamento
 		case 0:
-			cout << " Saldo Inicial";
+			cout << "   +Saldo Inicial\n";
 			tipoLancamento = Clientes[indice].EXT_tipoDoLancamento[i];
 			break;
 		case 1:
-			cout << " Transferencia Enviada";
+			cout << "   -Transferencia Enviada\n";
 			tipoLancamento = Clientes[indice].EXT_tipoDoLancamento[i];
 			break;
 		case 2:
-			cout << " Transferencia Recebida";
+			cout << "   +Transferencia Recebida\n ";
 			tipoLancamento = Clientes[indice].EXT_tipoDoLancamento[i];
 			break;
 		case 3:
-			cout << " Deposito";
+			cout << "   +Deposito\n ";
 			tipoLancamento = Clientes[indice].EXT_tipoDoLancamento[i];
 			break;
 		case 4:
-			cout << " Saque";
+			cout << "   -Saque\n ";
 			tipoLancamento = Clientes[indice].EXT_tipoDoLancamento[i];
 			break;
 		}
-		cout << " | Valor do Lancamento: ";
+		cout << " |Valor:";
 		switch (tipoLancamento) { // Caso seja decrementado um valor (saque ou transferência enviada)
 		case 1:
 			cout << "-";
@@ -656,9 +659,9 @@ void emitirExtrato(Cliente Clientes[]) {
 			cout << "-";
 			break;
 		}
-		cout << "R$";
+		cout << " R$ ";
 		cout << Clientes[indice].EXT_valorDoLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]]; // Exibe o valor do lançamento
-		cout << " | Saldo: R$" << Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]] << endl; // Exibe o saldo após o lançamento ter sido realizado
+		cout << "  | Saldo: R$ " << Clientes[indice].EXT_saldoPosLancamento[Clientes[indice].EXT_quantidadeDeLancamentos[i]] << endl; // Exibe o saldo após o lançamento ter sido realizado
 	}
 }
 
@@ -734,5 +737,47 @@ void dataAtual(int tipo) {
 		// Ocorreu um erro ao obter a hora local
 		cerr << "Erro ao obter a hora local." << endl;
 		return;
+	}
+}
+
+void consultarSaldo(Cliente Clientes[]) {
+	char numeroDaConta[12], numeroDaAgencia[6];
+	bool nvalido;
+
+	int indice = selecionaConta(Clientes);
+	float valorDeposito;
+	while (indice == -1) {
+		system("CLS");
+		cerr << " Conta nao encontrada! Digite novamente. " << endl;
+		indice = selecionaConta(Clientes);
+	}
+	cout << " | Numero da Conta: ";
+	cout << Clientes[indice].numeroDaConta << endl;
+	cout << " | Numero da Agencia: ";
+	cout << Clientes[indice].numeroDaAgencia << endl;
+	cout << " | Nome do Titular: ";
+	cout << Clientes[indice].nomeDoTitular << endl;
+	cout << " | CPF do Titular: ";
+	cout << Clientes[indice].cpfDoTitular << endl;
+	cout << " | Saldo Atual: ";
+	cout << Clientes[indice].saldoAtual;
+	cout << endl;
+	system("pause");	
+}
+
+void menuExtrato(Cliente Clientes[]) {
+	cout << " | Deseja gerar o extrato em tela ou em arquivo?" << endl
+		 << " 1 - Extrato em Tela\t2 - Extrato em Arquivo" << endl;
+	int opc;
+	cin >> opc;
+	switch (opc) {
+	case 1:
+		emitirExtrato(Clientes);
+		break;
+	case 2:
+		preparaExtrato(Clientes);
+		break;
+	default:
+		cerr << " Opcao invalida. Saindo." << endl;
 	}
 }
