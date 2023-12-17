@@ -59,7 +59,7 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu);
 void cadastrarConta(Cliente Clientes[]);
 int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca);
 void excluirConta(Cliente Clientes[], int& quantidadeDeClientes);
-void atribuiChar(Cliente Clientes[], int indice, Cliente Temp);
+void copiaDados(Cliente Clientes[], int indice, Cliente Temp);
 void exibeConta(Cliente Clientes[], int indice);
 int selecionaConta(Cliente Clientes[]);
 void alterarConta(Cliente Clientes[]);
@@ -197,7 +197,7 @@ void cadastrarConta(Cliente Clientes[]) {
 		cerr << "Saldo invalido: O valor nao pode ser negativo." << endl << "Digite novamente: ";
 		cin >> Temp.saldoAtual;
 	}
-	atribuiChar(Clientes, quantidadeDeClientes, Temp); // Faz a cópia dos dados inseridos em Temp para Clientes[]
+	copiaDados(Clientes, quantidadeDeClientes, Temp); // Faz a cópia dos dados inseridos em Temp para Clientes[]
 	atualizaExtrato(Clientes, quantidadeDeClientes, 0, Temp.saldoAtual);
 	quantidadeDeClientes++;
 }
@@ -267,7 +267,7 @@ void excluirConta(Cliente Clientes[], int& quantidadeDeClientes) {
 	}
 }
 // Faz a cópia de campos de Temp para campos de Clientes[indice]
-void atribuiChar(Cliente Clientes[], int indice, Cliente Temp) {
+void copiaDados(Cliente Clientes[], int indice, Cliente Temp) {
 	strcpy(Clientes[indice].numeroDaConta, Temp.numeroDaConta);
 	strcpy(Clientes[indice].numeroDaAgencia, Temp.numeroDaAgencia);
 	strcpy(Clientes[indice].nomeDoTitular, Temp.nomeDoTitular);
@@ -485,7 +485,7 @@ void geraHtml(Cliente Clientes[], int indice) {
 
 	fout << "</head>";
 	fout << "<body>"
-		<< "<div class='card  auto-width'>" // Alterar isso pra ficar do tamanho certo
+		<< "<div class='card  auto-width'>"
 
 		<< "<table>"
 		<< "<tr>"
@@ -530,10 +530,10 @@ void geraHtml(Cliente Clientes[], int indice) {
 
 		fout << "<td>";
 		dataAtual();
-		fout << "</td>"; // Alterar para data
+		fout << "</td>";
 		fout << "<td>";
 		dataAtual(2);
-		fout << "</td>"; // Alterar para hora
+		fout << "</td>";
 
 		switch (Clientes[indice].EXT_tipoDoLancamento[i]) {
 		case 0:
@@ -566,7 +566,7 @@ void geraHtml(Cliente Clientes[], int indice) {
 	fout << "</html>";
 }
 
-// Altera a string, adicionando o nome do usuário
+// Altera o vetor de caracteres, adicionando o nome do usuário
 void getUserName(char diretorioDeCriacao[]) {
 	char username[UNLEN + 1];
 	DWORD username_len = UNLEN + 1;
