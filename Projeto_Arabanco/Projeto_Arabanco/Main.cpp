@@ -95,7 +95,7 @@ inline void cabecalho_menuPrincipal() {
 
 void menuPrincipal() {
 	int opcaoMenu;
-	Cliente Clientes[MAX_CLIENTES];
+	Cliente *Clientes = new Cliente[MAX_CLIENTES];
 	do {
 		system("CLS");
 		cabecalho_menuPrincipal();
@@ -120,6 +120,7 @@ void menuPrincipal() {
 			switch_menuPrincipal(Clientes, opcaoMenu);
 		}
 	} while (opcaoMenu != 10);
+	delete[] Clientes;
 }
 
 // Acessando funções do programa
@@ -199,12 +200,9 @@ void cadastrarConta(Cliente Clientes[]) {
 	atribuiChar(Clientes, quantidadeDeClientes, Temp); // Faz a cópia dos dados inseridos em Temp para Clientes[]
 	atualizaExtrato(Clientes, quantidadeDeClientes, 0, Temp.saldoAtual);
 	quantidadeDeClientes++;
-
-
 }
 
 // Usada para verificar se existem cadastros com campos iguais
-/// <summary>
 ///  Valores para 'opcaoDeBusca': 
 ///		1 = Número da Conta
 ///		2 = Número da Agência
@@ -258,7 +256,7 @@ void excluirConta(Cliente Clientes[], int& quantidadeDeClientes) {
 	}
 	else {
 		for (int i = buscarNumero; i < quantidadeDeClientes; i++) {
-			Clientes[i] = Clientes[i + 1];
+			Clientes[i] = Clientes[i + 1]; // Movendo as contas para trás
 			quantidadeDeClientes--;
 		}
 		cout << "Conta Deletada com sucesso." << endl;
