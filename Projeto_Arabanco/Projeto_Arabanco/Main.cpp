@@ -3,6 +3,8 @@
 #include <fstream>
 #include <windows.h>
 #include <iomanip>
+#include <cctype>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -74,12 +76,12 @@ void preparaExtrato(Cliente Clientes[]);
 void dataAtual(int tipo = 1);
 void consultarSaldo(Cliente Clientes[]);
 void menuExtrato(Cliente Clientes[]);
+int StoI(char stringNumerica[]);
+float StoF(char stringNumerica[]);
 
 ofstream fout;
 
 ////////////////////////////////////////////////////////////////
-
-
 
 int main() {
 	menuPrincipal();
@@ -95,6 +97,7 @@ inline void cabecalho_menuPrincipal() {
 
 void menuPrincipal() {
 	int opcaoMenu;
+	char tempChar[12];
 	Cliente *Clientes = new Cliente[MAX_CLIENTES];
 	do {
 		system("CLS");
@@ -111,7 +114,8 @@ void menuPrincipal() {
 			<< " 9 | Emitir extrato de conta" << endl
 			<< " 10 | Sair" << endl
 			<< " Escolha uma opcao: ";
-		cin >> opcaoMenu;
+		cin >> tempChar;
+		opcaoMenu = StoI(tempChar);
 		if (opcaoMenu < 1 || opcaoMenu > 10) { // Validando a opção escolhida
 			cerr << "Opcao invalida. Digite novamente." << endl;
 			system("PAUSE");
@@ -174,29 +178,39 @@ void cadastrarConta(Cliente Clientes[]) {
 	Cliente Temp; // Tipo temporario, armazena dados para serem verificados antes de serem salvos no sistema
 	cout << " 1 | Cadastrar Conta Corrente" << endl << endl;
 	cout << "Numero da Conta: ";
-	cin >> Temp.numeroDaConta;
-	while (busca(Clientes, Temp.numeroDaConta, 1) != -1) { //  Se retornar -1, significa que nao existe um cadastro com o campo escolhido
+	char tempChar1[12];
+	cin >> tempChar1;
+	StoI(tempChar1);
+	while (busca(Clientes, tempChar1, 1) != -1) { //  Se retornar -1, significa que nao existe um cadastro com o campo escolhido
 		system("CLS");
 		cerr << "Ja existe uma Conta Corrente com esse numero. Digite novamente: ";
-		cin >> Temp.numeroDaConta;
+		cin >> tempChar1;
 	}
+	strcpy(Temp.numeroDaConta, tempChar1);
 	cout << "Numero da Agencia: ";
-	cin >> Temp.numeroDaAgencia;
-	while (busca(Clientes, Temp.numeroDaAgencia, 2) != -1) { //  Se retornar -1, significa que nao existe um cadastro com o campo escolhido
+	char tempChar2[12];
+	cin >> tempChar2;
+	StoI(tempChar2);
+	while (busca(Clientes, tempChar2, 2) != -1) { //  Se retornar -1, significa que nao existe um cadastro com o campo escolhido
 		system("CLS");
 		cerr << "Ja existe uma conta com esse numero de Agencia. Digite novamente: ";
-		cin >> Temp.numeroDaAgencia;
+		cin >> tempChar2;
 	}
+	strcpy(Temp.numeroDaAgencia, tempChar2);
 	cout << "Nome do Titular: ";
 	cin >> Temp.nomeDoTitular;
 	cout << "CPF do Titular: ";
 	cin >> Temp.cpfDoTitular;
 	cout << "Saldo inicial: ";
-	cin >> Temp.saldoAtual;
-	while (Temp.saldoAtual < 0) {
+	char tempChar3[12];
+	cin >> tempChar1;
+	float saldoAtual = StoF(tempChar1);
+	while (saldoAtual < 0) {
 		cerr << "Saldo invalido: O valor nao pode ser negativo." << endl << "Digite novamente: ";
-		cin >> Temp.saldoAtual;
+		cin >> tempChar1;
+		saldoAtual = StoI(tempChar1);
 	}
+	Temp.saldoAtual = saldoAtual;
 	copiaDados(Clientes, quantidadeDeClientes, Temp); // Faz a cópia dos dados inseridos em Temp para Clientes[]
 	atualizaExtrato(Clientes, quantidadeDeClientes, 0, Temp.saldoAtual);
 	quantidadeDeClientes++;
@@ -236,22 +250,30 @@ int busca(Cliente Clientes[], char campoDeBusca[], int opcaoDeBusca) {
 	}
 	return -1; //Retorna -1 se não for encontrado um cadastro com os campos buscados
 }
+
 void excluirConta(Cliente Clientes[], int& quantidadeDeClientes) {
 	system("cls");
+	if (!existeCadastro) {
+		cerr << "Nao existem cadastros no banco de dados!" << endl;
+		system("PAUSE");
+		return;
+	}
 	char numeroDaConta[12];
 	char numeroDaAgencia[6];
 
 	cout << "Excluindo conta...\n";
 	cout << "Informe o numero da conta: ";
 	cin >> numeroDaConta;
+	StoI(numeroDaConta);
 	cout << "Agora informe o numero da agencia: ";
 	cin >> numeroDaAgencia;
+	StoI(numeroDaAgencia);
 
 	int buscarNumero = busca(Clientes, numeroDaConta, 1);
 
 	if (buscarNumero == -1) {
-		cout << "Conta nao encontrada!\n";
-		cout << "operaçao finalizada!";
+		cerr << "Conta nao encontrada!\n";
+		cerr << "Operacao finalizada!";
 		system("pause");
 	}
 	else {
@@ -275,7 +297,7 @@ void copiaDados(Cliente Clientes[], int indice, Cliente Temp) {
 	Clientes[indice].saldoAtual = Temp.saldoAtual;
 }
 
-// Exibe todos os campos de uma determinada conta (pode ser usado dentro de um loop)
+// Exibe todos os campos de uma determinada conta
 void exibeConta(Cliente Clientes[], int indice) {
 	cout << " | Numero da Conta: " << Clientes[indice].numeroDaConta << endl
 		<< " | Numero da Agencia: " << Clientes[indice].numeroDaAgencia << endl
@@ -293,8 +315,10 @@ int selecionaConta(Cliente Clientes[]) {
 
 	cout << " | Insira o Numero da Conta Corrente: ";
 	cin >> numConta;
+	StoI(numConta);
 	cout << " | Insira o Numero da Agencia da Conta Corrente: ";
 	cin >> numAgencia;
+	StoI(numAgencia);
 
 	resultadoDaBusca = busca(Clientes, numConta, 1); // Verifica se há uma conta com o número procurado, e armazena o resultado
 	if (resultadoDaBusca != -1) {
@@ -349,11 +373,14 @@ void depositar(Cliente Clientes[]) {
 	}
 	exibeConta(Clientes, indice);
 	cout << " | Digite o valor a ser depositado: ";
-	cin >> valorDeposito;
+	char tempChar1[12];
+	cin >> tempChar1;
+	valorDeposito = StoF(tempChar1);
 	while (valorDeposito <= 0) { // Proibindo depositos iguais a zero ou negativos
 		system("CLS");
 		cerr << " Valor do deposito nao pode ser menor ou igual a zero! Digite novamente." << endl;
-		cin >> valorDeposito;
+		cin >> tempChar1;
+		valorDeposito = StoF(tempChar1);
 	}
 	Clientes[indice].saldoAtual += valorDeposito;
 	atualizaExtrato(Clientes, indice, 3, valorDeposito); // Atualizando o extrato do cliente
@@ -364,6 +391,7 @@ void realizarSaque(Cliente Clientes[]) {
 	//Variaveis para pegar os dados digitados pelo usuario:
 	char numeroDaConta[12];
 	char numeroDaAgencia[6];
+	char tempChar1[8];
 	float valorSaque;
 	//Variaveis para pegar retorno de funções
 	int indice;
@@ -373,8 +401,10 @@ void realizarSaque(Cliente Clientes[]) {
 		system("CLS");
 		cout << " | Insira o Numero da Conta Corrente: ";
 		cin >> numeroDaConta;
+		StoI(numeroDaConta);
 		cout << " | Insira o Numero da Agencia: ";
 		cin >> numeroDaAgencia;
+		StoI(numeroDaAgencia);
 		//Abaixo a expressão lógica para saber se a conta digitada é valida ou não
 		valido = busca(Clientes, numeroDaConta, 1) == busca(Clientes, numeroDaAgencia, 2) && busca(Clientes, numeroDaAgencia, 2) != -1;
 		if (valido) {
@@ -392,7 +422,8 @@ void realizarSaque(Cliente Clientes[]) {
 		system("CLS");
 		exibeConta(Clientes, indice);//Exibe os dados da conta digitada pelo usuario
 		cout << " | Digite o valor a ser sacado: ";
-		cin >> valorSaque;
+		cin >> tempChar1;
+		valorSaque = StoF(tempChar1);
 		//Abaixo é feita uma série de verificações para checar se o valor é valido, caso não seja, exibe uma mensagem informando o erro
 		//ocorrido
 		if (valorSaque < 0) {
@@ -566,6 +597,64 @@ void geraHtml(Cliente Clientes[], int indice) {
 	fout << "</html>";
 }
 
+int StoI(char stringNumerica[]) {
+	int stringValida = 0;
+	while (true) {
+		bool valid = true;
+		// Verifica se todos os caracteres sao digitos
+		for (int i = 0; stringNumerica[i] != '\0'; i++) {
+			if (!isdigit(static_cast<unsigned char>(stringNumerica[i]))) {
+				valid = false;
+				break;
+			}
+		}
+		if (valid) {
+			break; // Se for valido, sai do loop
+		}
+		else {
+			cerr << "Possui caracteres nao-numericos. Digite novamente: ";
+			cin >> stringNumerica;
+		}
+	}
+	int conv = atoi(stringNumerica);
+	return conv;
+}
+
+float StoF(char stringNumerica[]) {
+	int stringValida = 0;
+	while (true) {
+		bool valid = true;
+		bool pontoDecimalEncontrado = false;
+
+		// Verifica se todos os caracteres são digitos ou se possui apenas um ponto
+		for (int i = 0; stringNumerica[i] != '\0'; i++) {
+			if (stringNumerica[i] == '.') {
+				if (pontoDecimalEncontrado) {
+					valid = false;  // Mais de um ponto decimal encontrado
+					break;
+				}
+				pontoDecimalEncontrado = true;
+			}
+			else if (!isdigit(static_cast<unsigned char>(stringNumerica[i]))) {
+				valid = false;
+				break;
+			}
+		}
+
+		if (valid && pontoDecimalEncontrado) {
+			break; // Se for válido, sai do loop
+		}
+		else {
+			cerr << "Possui caracteres nao-numericos. Digite novamente: ";
+			cin >> stringNumerica;
+		}
+	}
+
+	float conv = atof(stringNumerica);
+
+	return conv;
+}
+
 // Altera o vetor de caracteres, adicionando o nome do usuário
 void getUserName(char diretorioDeCriacao[]) {
 	char username[UNLEN + 1];
@@ -684,10 +773,12 @@ void tranferirValores(Cliente Clientes[]) {
 	exibeConta(Clientes, indice2);
 	cout << "Digite o valor a ser transferido:";
 	float valorTransferencia;
+	char tempChar1[8];
 	do { // Reutilizado da função de Saque
 		//Abaixo é feita uma série de verificações para checar se o valor é valido, caso não seja, exibe uma mensagem informando o erro
 		//ocorrido
-		cin >> valorTransferencia;
+		cin >> tempChar1;
+		valorTransferencia = StoF(tempChar1);
 		if (valorTransferencia < 0) {
 			system("CLS");
 			cerr << " O valor a ser transferido nao pode ser negativo! Digite novamente: " << endl;
@@ -743,7 +834,6 @@ void consultarSaldo(Cliente Clientes[]) {
 	bool nvalido;
 
 	int indice = selecionaConta(Clientes);
-	float valorDeposito;
 	while (indice == -1) {
 		system("CLS");
 		cerr << " Conta nao encontrada! Digite novamente. " << endl;
