@@ -68,7 +68,7 @@ void alterarConta(Cliente Clientes[]);
 void emitirExtrato(Cliente Clientes[]);
 void depositar(Cliente Clientes[]);
 void realizarSaque(Cliente Clientes[]);
-void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float valorLancamento);
+void atualizaExtrato(Cliente Clientes[], int indice, int tipoLancamento, float valorLancamento);
 void tranferirValores(Cliente Clientes[]);
 void userName(char diretorioDeCriacao[]);
 void geraDiretorio(char username[], char diretorioDeCriacao[]);
@@ -78,6 +78,9 @@ void consultarSaldo(Cliente Clientes[]);
 void menuExtrato(Cliente Clientes[]);
 int StoI(char stringNumerica[]);
 float StoF(char stringNumerica[]);
+void importa(Cliente contas[], int& qtd);
+void exporta(Cliente contas[], int qtd);
+void listarContas(Cliente Clientes[]);
 
 ofstream fout;
 
@@ -156,15 +159,7 @@ void switch_menuPrincipal(Cliente Clientes[], int opcaoMenu) {
 		tranferirValores(Clientes);
 		break;
 	case 8:
-		if (!existeCadastro && quantidadeDeClientes == 0) {
-			cerr << "Nao existem clientes cadastrados" << endl;			
-			system("PAUSE");
-			break;
-		}
-		for (int i = 0; i < quantidadeDeClientes; i++) {
-			exibeConta(Clientes, i);
-		}
-		cout << quantidadeDeClientes;
+		listarContas(Clientes);
 		system("PAUSE");
 		break;
 	case 9:
@@ -343,6 +338,11 @@ int selecionaConta(Cliente Clientes[]) {
 }
 
 void alterarConta(Cliente Clientes[]) {
+	if (!existeCadastro) {
+		cerr << "Nao existem cadastros no banco de dados!" << endl;
+		system("PAUSE");
+		return;
+	}
 	int indice = selecionaConta(Clientes);
 	while (indice == -1) {
 		system("CLS");
@@ -364,6 +364,11 @@ void alterarConta(Cliente Clientes[]) {
 }
 
 void depositar(Cliente Clientes[]) {
+	if (!existeCadastro) {
+		cerr << "Nao existem cadastros no banco de dados!" << endl;
+		system("PAUSE");
+		return;
+	}
 	int indice = selecionaConta(Clientes);
 	float valorDeposito;
 	while (indice == -1) {
@@ -389,6 +394,11 @@ void depositar(Cliente Clientes[]) {
 
 void realizarSaque(Cliente Clientes[]) {
 	//Variaveis para pegar os dados digitados pelo usuario:
+	if (!existeCadastro) {
+		cerr << "Nao existem cadastros no banco de dados!" << endl;
+		system("PAUSE");
+		return;
+	}
 	char numeroDaConta[12];
 	char numeroDaAgencia[6];
 	char tempChar1[8];
@@ -447,8 +457,17 @@ void realizarSaque(Cliente Clientes[]) {
 	atualizaExtrato(Clientes, indice, 4, valorSaque);
 }
 
+///
+/// Valores para tipoDoLancamento:
+///  0 = Saldo Inicial
+///  1 = Transferência Enviada
+///  2 = Transferência Recebida
+///  3 = Depósito
+///  4 = Saque
+/// 
+
 // Atualiza o extrato de acordo com os tipos de lançamentos definidos no topo do código
-void atualizaExtrato(Cliente Clientes[], int indice, char tipoLancamento, float valorLancamento) {
+void atualizaExtrato(Cliente Clientes[], int indice, int tipoLancamento, float valorLancamento) {
 	Clientes[indice].EXT_tipoDoLancamento[Clientes[indice].qtdLancamentos] = tipoLancamento;
 	Clientes[indice].EXT_quantidadeDeLancamentos[Clientes[indice].qtdLancamentos] = Clientes[indice].qtdLancamentos;
 	Clientes[indice].EXT_valorDoLancamento[Clientes[indice].qtdLancamentos] = valorLancamento;
@@ -641,7 +660,7 @@ float StoF(char stringNumerica[]) {
 			}
 		}
 
-		if (valid && pontoDecimalEncontrado) {
+		if (valid || pontoDecimalEncontrado) {
 			break; // Se for válido, sai do loop
 		}
 		else {
@@ -754,6 +773,11 @@ void emitirExtrato(Cliente Clientes[]) {
 
 // Transfere de uma conta para outra
 void tranferirValores(Cliente Clientes[]) {
+	if (!existeCadastro) {
+		cerr << "Nao existem cadastros no banco de dados!" << endl;
+		system("PAUSE");
+		return;
+	}
 	int indice1 = selecionaConta(Clientes);
 	while (indice1 == -1) {
 		system("CLS");
@@ -830,6 +854,11 @@ void dataAtual(int tipo) {
 }
 
 void consultarSaldo(Cliente Clientes[]) {
+	if (!existeCadastro) {
+		cerr << "Nao existem cadastros no banco de dados!" << endl;
+		system("PAUSE");
+		return;
+	}
 	char numeroDaConta[12], numeroDaAgencia[6];
 	bool nvalido;
 
@@ -854,8 +883,13 @@ void consultarSaldo(Cliente Clientes[]) {
 }
 
 void menuExtrato(Cliente Clientes[]) {
+	if (!existeCadastro) {
+		cerr << "Nao existem cadastros no banco de dados!" << endl;
+		system("PAUSE");
+		return;
+	}
 	cout << " | Deseja gerar o extrato em tela ou em arquivo?" << endl
-		 << " 1 - Extrato em Tela\t2 - Extrato em Arquivo" << endl;
+		 << " 1 - Extrato em Tela\t2 - Extrato em Arquivo\t3 - Exportar todas as contas" << endl;
 	int opc;
 	cin >> opc;
 	switch (opc) {
@@ -865,7 +899,64 @@ void menuExtrato(Cliente Clientes[]) {
 	case 2:
 		preparaExtrato(Clientes);
 		break;
+	case 3:
+		exporta(Clientes, quantidadeDeClientes);
+		break;
 	default:
 		cerr << " Opcao invalida. Saindo." << endl;
 	}
+}
+
+void listarContas(Cliente Clientes[]) {
+	char opchar[12];
+	int opcao = -1;
+	if (!existeCadastro && quantidadeDeClientes == 0) {
+		cerr << "Nao existem clientes cadastrados" << endl;
+		cout << "Deseja tentar importar de um arquivo local?" << endl
+			<< "1 - Sim\t2 - Nao" << endl;
+		cin >> opchar;
+		opcao = StoI(opchar);
+		switch (opcao) {
+		case 1:
+			importa(Clientes, quantidadeDeClientes);
+			break;
+		case 2:
+			cout << "Saindo." << endl;
+			system("PAUSE");
+			return;
+			break;
+		default:
+			cerr << "Opcao invalida. Saindo." << endl;
+			system("PAUSE");
+			return;
+		}
+	}
+	for (int i = 0; i < quantidadeDeClientes; i++) {
+		exibeConta(Clientes, i);
+	}
+}
+
+
+void importa(Cliente contas[], int& qtd) {
+	ifstream fin;
+	fin.open("Arabanco.bin", ios::binary);
+	if (!fin) {
+		cerr << "Erro ao abrir o arquivo" << endl;
+	}
+	fin.read((char*)&qtd, sizeof(qtd));
+	fin.read((char*)contas, sizeof(Cliente[MAX_CLIENTES]));
+	fin.close();
+
+}
+
+void exporta(Cliente contas[], int qtd) {
+	ofstream fout;
+	fout.open("Arabanco.bin", ios::binary);
+	if (!fout) {
+		cerr << "Erro ao abrir o arquivo.";
+		return;
+	}
+	fout.write((char*)&qtd, sizeof(qtd));
+	fout.write((char*)contas, sizeof(Cliente[MAX_CLIENTES]));
+	fout.close();
 }
