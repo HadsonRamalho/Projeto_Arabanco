@@ -820,7 +820,7 @@ void tranferirValores(Cliente Clientes[]) {
 	Clientes[indice1].saldoAtual -= valorTransferencia; // Subtrai o valor transferido da conta atual
 	Clientes[indice2].saldoAtual += valorTransferencia; // Soma o valor à conta de destino
 	atualizaExtrato(Clientes, indice1, 1, valorTransferencia); // Atualiza o extrato com a opção de transferência enviada
-	atualizaExtrato(Clientes, indice2, 2, valorTransferencia); // Atualzia o extrato com a opção de transferência recebida
+	atualizaExtrato(Clientes, indice2, 2, valorTransferencia); // Atualiza o extrato com a opção de transferência recebida
 	cout << " --- Transferencia concluida ---" << endl;
 	system("PAUSE");
 }
@@ -891,7 +891,9 @@ void menuExtrato(Cliente Clientes[]) {
 	cout << " | Deseja gerar o extrato em tela ou em arquivo?" << endl
 		 << " 1 - Extrato em Tela\t2 - Extrato em Arquivo\t3 - Exportar todas as contas" << endl;
 	int opc;
-	cin >> opc;
+	char opchar[12];
+	cin >> opchar;
+	opc = StoI(opchar);
 	switch (opc) {
 	case 1:
 		emitirExtrato(Clientes);
