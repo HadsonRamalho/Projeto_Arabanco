@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <cctype>
 #include <stdlib.h>
+#include <time.h>
 
 using namespace std;
 
@@ -101,7 +102,7 @@ inline void cabecalho_menuPrincipal() {
 void menuPrincipal() {
 	int opcaoMenu;
 	char tempChar[12];
-	Cliente *Clientes = new Cliente[MAX_CLIENTES];
+	Cliente* Clientes = new Cliente[MAX_CLIENTES];
 	do {
 		system("CLS");
 		cabecalho_menuPrincipal();
@@ -547,11 +548,11 @@ void geraHtml(Cliente Clientes[], int indice) {
 		<< "</tr>"
 		<< "<tr>"
 		<< "<td style='font-size: 20px;'> Data: ";
-		dataAtual();
-		fout << "</td>"
+	dataAtual();
+	fout << "</td>"
 		<< "<td style='font-size: 20px;'> Horário: ";
-		dataAtual(2);
-		fout << "</td>"
+	dataAtual(2);
+	fout << "</td>"
 		<< "</tr>"
 		<< "</table>"
 
@@ -830,18 +831,19 @@ void tranferirValores(Cliente Clientes[]) {
 void dataAtual(int tipo) {
 	// Obtem o tempo atual
 	time_t currentTime;
-	time(&currentTime);
 	// Estrutura de tm para armazenar a hora local
-	struct tm timeInfo;
+	struct tm* timeInfo;
+	time(&currentTime);
 	// Converte o tempo para a hora local usando localtime_s
-	if (localtime_s(&timeInfo, &currentTime) == 0) {
-		int year = timeInfo.tm_year + 1900;
-		int month = timeInfo.tm_mon + 1;
-		int day = timeInfo.tm_mday;
-		int hour = timeInfo.tm_hour;
-		int min = timeInfo.tm_min;
+	timeInfo = localtime(&currentTime);
+	if (localtime(&currentTime)) {
+		int year = timeInfo->tm_year + 1900;
+		int month = timeInfo->tm_mon + 1;
+		int day = timeInfo->tm_mday;
+		int hour = timeInfo->tm_hour;
+		int min = timeInfo->tm_min;
 		// Mostra a data atual
-		if(tipo == 1)
+		if (tipo == 1)
 			fout << day << "/" << month << "/" << year << endl;
 		if (tipo == 2)
 			fout << hour << ":" << setw(2) << setfill('0') << min;
@@ -879,7 +881,7 @@ void consultarSaldo(Cliente Clientes[]) {
 	cout << " | Saldo Atual: ";
 	cout << Clientes[indice].saldoAtual;
 	cout << endl;
-	system("pause");	
+	system("pause");
 }
 
 void menuExtrato(Cliente Clientes[]) {
@@ -889,7 +891,7 @@ void menuExtrato(Cliente Clientes[]) {
 		return;
 	}
 	cout << " | Deseja gerar o extrato em tela ou em arquivo?" << endl
-		 << " 1 - Extrato em Tela\t2 - Extrato em Arquivo\t3 - Exportar todas as contas" << endl;
+		<< " 1 - Extrato em Tela\t2 - Extrato em Arquivo\t3 - Exportar todas as contas" << endl;
 	int opc;
 	char opchar[12];
 	cin >> opchar;
@@ -944,10 +946,12 @@ void importa(Cliente contas[], int& qtd) {
 	fin.open("Arabanco.bin", ios::binary);
 	if (!fin) {
 		cerr << "Erro ao abrir o arquivo" << endl;
+		return;
 	}
 	fin.read((char*)&qtd, sizeof(qtd));
 	fin.read((char*)contas, sizeof(Cliente[MAX_CLIENTES]));
 	fin.close();
+	existeCadastro = true;
 
 }
 
